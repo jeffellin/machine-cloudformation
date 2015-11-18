@@ -2,10 +2,6 @@ package amazoncf
 
 /**
 Todo
- * DONE Copy the SSH Key to the machine folder
- * Allow specification of SSH USer
- * Allow use of public ip (Currently private is the Default)
- * Check for anything special related to swarm
  * Pass additional Paramaters to the CloudFormation
  * Handle sititation where stack creation fails,  currently the driver just hangs waiting for completion
  * Validate Required Parameters
@@ -34,6 +30,10 @@ var (
 	swarmPort  = 3376
 )
 
+const (
+	defaultSSHUser = "ubuntu"
+)
+
 /*
  * This Driver will utilize a cloud formation stack to create an instance
  */
@@ -47,6 +47,7 @@ type Driver struct {
 	InstanceId        string
 	PrivateIPAddress  string
 	KeyPairName       string
+	UsePrivateIP      bool
 }
 
 func NewDriver(hostName, storePath string) *Driver {
@@ -56,6 +57,7 @@ func NewDriver(hostName, storePath string) *Driver {
 		BaseDriver: &drivers.BaseDriver{
 			MachineName: hostName,
 			StorePath:   storePath,
+			SSHUser:     defaultSSHUser,
 		},
 	}
 }
@@ -74,6 +76,15 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:  "cloudformation-keypath",
 			Usage: "keypath to SSH Private Key",
 		},
+		mcnflag.StringFlag{
+			Name:  "cloudformation-ssh-user",
+			Usage: "set the name of the ssh user",
+			Value: defaultSSHUser,
+		},
+		mcnflag.BoolFlag{
+			Name:  "cloudformation-use-private-address",
+			Usage: "Force the usage of private IP address",
+		},
 	}
 }
 
@@ -81,6 +92,8 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.CloudFormationURL = flags.String("cloudformation-url")
 	d.SSHPrivateKeyPath = flags.String("cloudformation-keypath")
 	d.KeyPairName = flags.String("cloudformation-keypairname")
+	d.SSHUser = flags.String("cloudformation-ssh-user")
+	d.UsePrivateIP = flags.Bool("cloudformation-use-private-address")
 	return nil
 }
 
@@ -89,6 +102,8 @@ func (d *Driver) DriverName() string {
 }
 
 func (d *Driver) PreCreateCheck() error {
+	fmt.Println("the useprivateip flag")
+	fmt.Println(d.UsePrivateIP)
 
 	return nil
 }
@@ -215,7 +230,13 @@ func (d *Driver) GetIP() (string, error) {
 
 	fmt.Println("the ip is %s ", *d.getInstance().PrivateIpAddress)
 
-	return *d.getInstance().PrivateIpAddress, nil
+	instance := d.getInstance()
+
+	if d.UsePrivateIP {
+		return *instance.PrivateIpAddress, nil
+	}
+
+	return *instance.PublicIpAddress, nil
 }
 
 func (d *Driver) getInstance() ec2.Instance {
