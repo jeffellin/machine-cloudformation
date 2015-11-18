@@ -1,10 +1,12 @@
 package amazoncf
 
-/**
+/*
+ * This Driver will utilize a cloud formation stack to create an instance, a lot of the configuration,
+ * security group, instance type, etc will be delegated to the cloud formation template.
+ *
 Todo
  * Pass additional Paramaters to the CloudFormation
  * Handle sititation where stack creation fails,  currently the driver just hangs waiting for completion
- * Validate Required Parameters
 **/
 
 import (
@@ -34,9 +36,6 @@ const (
 	defaultSSHUser = "ubuntu"
 )
 
-/*
- * This Driver will utilize a cloud formation stack to create an instance
- */
 const driverName = "amazoncf"
 
 type Driver struct {
@@ -94,6 +93,19 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.KeyPairName = flags.String("cloudformation-keypairname")
 	d.SSHUser = flags.String("cloudformation-ssh-user")
 	d.UsePrivateIP = flags.Bool("cloudformation-use-private-address")
+
+	if d.CloudFormationURL == "" {
+		return fmt.Errorf("cloudformation driver requires the --cloudformation-url")
+	}
+
+	if d.SSHPrivateKeyPath == "" {
+		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypath")
+	}
+
+	if d.KeyPairName == "" {
+		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypairname")
+	}
+
 	return nil
 }
 
@@ -102,19 +114,19 @@ func (d *Driver) DriverName() string {
 }
 
 func (d *Driver) PreCreateCheck() error {
-	fmt.Println("the useprivateip flag")
-	fmt.Println(d.UsePrivateIP)
+
+	//no precreate checks at the moment
 
 	return nil
 }
 
 func (d *Driver) Create() error {
 
+	log.Debugf("Creating a new Instance for Stack: %s", d.MachineName)
+
 	if err := mcnutils.CopyFile(d.SSHPrivateKeyPath, d.GetSSHKeyPath()); err != nil {
 		return err
 	}
-
-	log.Infof("Create the creation of an instance")
 
 	svc := cloudformation.New(session.New())
 
@@ -129,11 +141,8 @@ func (d *Driver) Create() error {
 		},
 	}
 	_, err := svc.CreateStack(params)
-	//might want to log the resp
 
 	if err != nil {
-		fmt.Println("Houston we have a problem")
-		fmt.Println(err.Error())
 		return err
 	}
 
@@ -142,7 +151,7 @@ func (d *Driver) Create() error {
 	}
 
 	if err := d.getInstanceInfo(); err != nil {
-		log.Debug(err)
+		return err
 	}
 
 	log.Debugf("created instance ID %s, IP address %s, Private IP address %s",
@@ -156,7 +165,7 @@ func (d *Driver) Create() error {
 
 func (d *Driver) stackAvailable() bool {
 
-	log.Infof("stackAvailable the creation of an instance")
+	log.Debug("Checking if the stack is available ")
 
 	svc := cloudformation.New(session.New())
 
@@ -164,8 +173,6 @@ func (d *Driver) stackAvailable() bool {
 		StackName: aws.String(d.MachineName),
 	}
 	resp, err := svc.DescribeStacks(params)
-
-	fmt.Println(resp)
 
 	if err != nil {
 		log.Infof("Houston we have a problem")
@@ -175,14 +182,12 @@ func (d *Driver) stackAvailable() bool {
 	if *resp.Stacks[0].StackStatus == cloudformation.ResourceStatusCreateComplete {
 		return true
 	} else {
-		log.Infof("...Stack Not Available Yet")
+		log.Debug("Stack Not Available Yet")
 		return false
 	}
 }
 
 func (d *Driver) getInstanceInfo() error {
-
-	log.Infof("getInstanceInfo the creation of an instance")
 
 	svc := cloudformation.New(session.New())
 
@@ -214,8 +219,6 @@ func (d *Driver) getInstanceInfo() error {
 
 func (d *Driver) GetURL() (string, error) {
 
-	//use the IP to get a formatted url
-
 	ip, err := d.GetIP()
 	if err != nil {
 		return "", err
@@ -228,7 +231,7 @@ func (d *Driver) GetURL() (string, error) {
 
 func (d *Driver) GetIP() (string, error) {
 
-	fmt.Println("the ip is %s ", *d.getInstance().PrivateIpAddress)
+	log.Debugf("the ip is %s ", *d.getInstance().PrivateIpAddress)
 
 	instance := d.getInstance()
 
@@ -253,9 +256,8 @@ func (d *Driver) getInstance() ec2.Instance {
 	resp, err := svc.DescribeInstances(params)
 
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
+
+		log.Debug(err.Error())
 
 	}
 
@@ -269,35 +271,21 @@ func (d *Driver) GetState() (state.State, error) {
 	//TODOO use EC2 instance info to get IP
 	//handle error
 	inst := d.getInstance()
-	fmt.Println("1")
-
-	fmt.Println(inst)
 
 	switch *inst.State.Name {
 	case "pending":
-		fmt.Println("pending")
 		return state.Starting, nil
 	case "running":
-		fmt.Println("running")
 		return state.Running, nil
 	case "stopping":
-		fmt.Println("stopping")
-
 		return state.Stopping, nil
 	case "shutting-down":
-		fmt.Println("shutting-down")
-
 		return state.Stopping, nil
 	case "stopped":
-		fmt.Println("stopped")
-
 		return state.Stopped, nil
 	default:
-		fmt.Println("default")
-
 		return state.Error, nil
 	}
-
 }
 
 func (d *Driver) GetSSHHostname() (string, error) {
@@ -305,7 +293,6 @@ func (d *Driver) GetSSHHostname() (string, error) {
 }
 
 func (d *Driver) GetSSHUsername() string {
-	//TODOO implement variable for SSHUSER
 
 	if d.SSHUser == "" {
 		d.SSHUser = "ubuntu"
@@ -314,8 +301,6 @@ func (d *Driver) GetSSHUsername() string {
 }
 
 func (d *Driver) Start() error {
-
-	log.Infof("Starting the creation of an instance")
 
 	svc := ec2.New(session.New())
 
@@ -328,9 +313,6 @@ func (d *Driver) Start() error {
 	_, err := svc.StartInstances(params)
 
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
 		return err
 	}
 
@@ -355,8 +337,6 @@ func (d *Driver) instanceIsRunning() bool {
 
 func (d *Driver) waitForInstance() error {
 
-	log.Infof("Waiting for instance")
-
 	if err := mcnutils.WaitFor(d.instanceIsRunning); err != nil {
 		return err
 	}
@@ -374,17 +354,12 @@ func (d *Driver) Restart() error {
 			// More values...
 		},
 	}
-	resp, err := svc.RebootInstances(params)
+	_, err := svc.RebootInstances(params)
 
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
+
 		return err
 	}
-
-	// Pretty-print the response data.
-	fmt.Println(resp)
 
 	if err := d.waitForInstance(); err != nil {
 		return err
@@ -403,17 +378,12 @@ func (d *Driver) Kill() error {
 			// More values...
 		},
 	}
-	resp, err := svc.StopInstances(params)
+	_, err := svc.StopInstances(params)
 
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
+
 		return err
 	}
-
-	// Pretty-print the response data.
-	fmt.Println(resp)
 
 	if err := d.waitForInstance(); err != nil {
 		return err
@@ -432,17 +402,11 @@ func (d *Driver) Stop() error {
 			// More values...
 		},
 	}
-	resp, err := svc.StopInstances(params)
+	_, err := svc.StopInstances(params)
 
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
 		return err
 	}
-
-	// Pretty-print the response data.
-	fmt.Println(resp)
 
 	if err := d.waitForInstance(); err != nil {
 		return err
@@ -458,17 +422,11 @@ func (d *Driver) Remove() error {
 	params := &cloudformation.DeleteStackInput{
 		StackName: aws.String(d.MachineName), // Required
 	}
-	resp, err := svc.DeleteStack(params)
+	_, err := svc.DeleteStack(params)
 
 	if err != nil {
-		// Print the error, cast err to awserr.Error to get the Code and
-		// Message from an error.
-		fmt.Println(err.Error())
-		//return
+		return err
 	}
-
-	// Pretty-print the response data.
-	fmt.Println(resp)
 
 	return nil
 }
