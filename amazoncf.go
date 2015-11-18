@@ -5,7 +5,6 @@ package amazoncf
  * security group, instance type, etc will be delegated to the cloud formation template.
  *
 Todo
- * Pass additional Paramaters to the CloudFormation
  * Handle sititation where stack creation fails,  currently the driver just hangs waiting for completion
 **/
 
@@ -14,6 +13,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
@@ -40,13 +40,14 @@ const driverName = "amazoncf"
 
 type Driver struct {
 	*drivers.BaseDriver
-	Id                string
-	CloudFormationURL string
-	SSHPrivateKeyPath string
-	InstanceId        string
-	PrivateIPAddress  string
-	KeyPairName       string
-	UsePrivateIP      bool
+	Id                       string
+	CloudFormationURL        string
+	SSHPrivateKeyPath        string
+	InstanceId               string
+	PrivateIPAddress         string
+	KeyPairName              string
+	UsePrivateIP             bool
+	CloudFormationParameters string
 }
 
 func NewDriver(hostName, storePath string) *Driver {
@@ -76,6 +77,10 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage: "keypath to SSH Private Key",
 		},
 		mcnflag.StringFlag{
+			Name:  "cloudformation-parameters",
+			Usage: "Additional CloudFormation Paramters",
+		},
+		mcnflag.StringFlag{
 			Name:  "cloudformation-ssh-user",
 			Usage: "set the name of the ssh user",
 			Value: defaultSSHUser,
@@ -93,6 +98,7 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.KeyPairName = flags.String("cloudformation-keypairname")
 	d.SSHUser = flags.String("cloudformation-ssh-user")
 	d.UsePrivateIP = flags.Bool("cloudformation-use-private-address")
+	d.CloudFormationParameters = flags.String("cloudformation-parameters")
 
 	if d.CloudFormationURL == "" {
 		return fmt.Errorf("cloudformation driver requires the --cloudformation-url")
@@ -120,6 +126,29 @@ func (d *Driver) PreCreateCheck() error {
 	return nil
 }
 
+func (d *Driver) createParams() []*cloudformation.Parameter {
+	val := "KeyName=Foo|KeyName2=bar"
+	s := strings.Split(val, "|")
+	a := []*cloudformation.Parameter{}
+
+	a = append(a, &cloudformation.Parameter{
+		ParameterKey:   aws.String("KeyName"),
+		ParameterValue: aws.String(d.KeyPairName),
+	})
+
+	for _, element := range s {
+		pairs := strings.Split(element, "=")
+		key := pairs[0]
+		value := pairs[1]
+		par := &cloudformation.Parameter{
+			ParameterKey:   aws.String(key),
+			ParameterValue: aws.String(value),
+		}
+		a = append(a, par)
+	}
+	return a
+}
+
 func (d *Driver) Create() error {
 
 	log.Debugf("Creating a new Instance for Stack: %s", d.MachineName)
@@ -133,12 +162,7 @@ func (d *Driver) Create() error {
 	params := &cloudformation.CreateStackInput{
 		StackName:   aws.String(d.MachineName),
 		TemplateURL: aws.String(d.CloudFormationURL),
-		Parameters: []*cloudformation.Parameter{
-			{
-				ParameterKey:   aws.String("KeyName"),
-				ParameterValue: aws.String(d.KeyPairName),
-			},
-		},
+		Parameters:  d.createParams(),
 	}
 	_, err := svc.CreateStack(params)
 
