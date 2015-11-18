@@ -268,8 +268,6 @@ func (d *Driver) getInstance() ec2.Instance {
 
 func (d *Driver) GetState() (state.State, error) {
 
-	//TODOO use EC2 instance info to get IP
-	//handle error
 	inst := d.getInstance()
 
 	switch *inst.State.Name {
