@@ -6,6 +6,7 @@ package amazoncf
  *
 Todo
  * Handle sititation where stack creation fails,  currently the driver just hangs waiting for completion
+ * Unit Testing
 **/
 
 import (
@@ -50,7 +51,7 @@ type Driver struct {
 	CloudFormationParameters string
 }
 
-func NewDriver(hostName, storePath string) *Driver {
+func NewDriver(hostName, storePath string) drivers.Driver {
 	id := generateId()
 	return &Driver{
 		Id: id,
@@ -99,18 +100,6 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.SSHUser = flags.String("cloudformation-ssh-user")
 	d.UsePrivateIP = flags.Bool("cloudformation-use-private-address")
 	d.CloudFormationParameters = flags.String("cloudformation-parameters")
-
-	if d.CloudFormationURL == "" {
-		return fmt.Errorf("cloudformation driver requires the --cloudformation-url")
-	}
-
-	if d.SSHPrivateKeyPath == "" {
-		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypath")
-	}
-
-	if d.KeyPairName == "" {
-		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypairname")
-	}
 
 	return nil
 }
@@ -197,6 +186,8 @@ func (d *Driver) stackAvailable() bool {
 		StackName: aws.String(d.MachineName),
 	}
 	resp, err := svc.DescribeStacks(params)
+
+	log.Debug(resp)
 
 	if err != nil {
 		log.Infof("Houston we have a problem")
