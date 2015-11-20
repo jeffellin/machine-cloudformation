@@ -12,4 +12,9 @@ The driver assumes that you have a cloud formation template already uplaoded to 
 docker-machine  create --driver amazoncf --cloudformation-url https://s3.amazonaws.com/cformation-jellin/template1 --cloudformation-keypairname jeff --cloudformation-keypath /Users/jellin/.ssh/id_rsa --cloudformation-use-private-address  dockerdemo
 ```
 - Code has been tested with docker-machine .52
+---
+Todo
+- Fix issue when Stack Creation fails,  the process will hang forver
+- Test on .51 which this branch is vendorized with.
+
 
