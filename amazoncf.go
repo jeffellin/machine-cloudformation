@@ -101,6 +101,18 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.UsePrivateIP = flags.Bool("cloudformation-use-private-address")
 	d.CloudFormationParameters = flags.String("cloudformation-parameters")
 
+	if d.CloudFormationURL == "" {
+		return fmt.Errorf("cloudformation driver requires the --cloudformation-url")
+	}
+
+	if d.SSHPrivateKeyPath == "" {
+		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypath")
+	}
+
+	if d.KeyPairName == "" {
+		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypairname")
+	}
+
 	return nil
 }
 
@@ -116,14 +128,17 @@ func (d *Driver) PreCreateCheck() error {
 }
 
 func (d *Driver) createParams() []*cloudformation.Parameter {
-	val := "KeyName=Foo|KeyName2=bar"
-	s := strings.Split(val, "|")
+	val := ""
+	
 	a := []*cloudformation.Parameter{}
 
 	a = append(a, &cloudformation.Parameter{
 		ParameterKey:   aws.String("KeyName"),
 		ParameterValue: aws.String(d.KeyPairName),
 	})
+
+	if(val!=""){
+		s := strings.Split(val, "|")
 
 	for _, element := range s {
 		pairs := strings.Split(element, "=")
@@ -135,6 +150,7 @@ func (d *Driver) createParams() []*cloudformation.Parameter {
 		}
 		a = append(a, par)
 	}
+}
 	return a
 }
 
@@ -285,6 +301,8 @@ func (d *Driver) GetState() (state.State, error) {
 
 	inst := d.getInstance()
 
+	log.Debugf(*inst.State.Name)
+
 	switch *inst.State.Name {
 	case "pending":
 		return state.Starting, nil
@@ -398,9 +416,7 @@ func (d *Driver) Kill() error {
 		return err
 	}
 
-	if err := d.waitForInstance(); err != nil {
-		return err
-	}
+	
 
 	return nil
 }
@@ -421,9 +437,7 @@ func (d *Driver) Stop() error {
 		return err
 	}
 
-	if err := d.waitForInstance(); err != nil {
-		return err
-	}
+	
 
 	return nil
 }
