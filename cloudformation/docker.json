@@ -87,7 +87,7 @@
               {
                 "Ref": "AWS::StackName"
               },
-              "tamrfield.com"
+              "ellin.com"
             ]
           ]
         },
