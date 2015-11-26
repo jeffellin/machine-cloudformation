@@ -12,9 +12,11 @@ Todo
 import (
 	"crypto/md5"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/log"
@@ -129,7 +131,7 @@ func (d *Driver) PreCreateCheck() error {
 
 func (d *Driver) createParams() []*cloudformation.Parameter {
 	val := ""
-	
+
 	a := []*cloudformation.Parameter{}
 
 	a = append(a, &cloudformation.Parameter{
@@ -137,20 +139,20 @@ func (d *Driver) createParams() []*cloudformation.Parameter {
 		ParameterValue: aws.String(d.KeyPairName),
 	})
 
-	if(val!=""){
+	if val != "" {
 		s := strings.Split(val, "|")
 
-	for _, element := range s {
-		pairs := strings.Split(element, "=")
-		key := pairs[0]
-		value := pairs[1]
-		par := &cloudformation.Parameter{
-			ParameterKey:   aws.String(key),
-			ParameterValue: aws.String(value),
+		for _, element := range s {
+			pairs := strings.Split(element, "=")
+			key := pairs[0]
+			value := pairs[1]
+			par := &cloudformation.Parameter{
+				ParameterKey:   aws.String(key),
+				ParameterValue: aws.String(value),
+			}
+			a = append(a, par)
 		}
-		a = append(a, par)
 	}
-}
 	return a
 }
 
@@ -175,7 +177,7 @@ func (d *Driver) Create() error {
 		return err
 	}
 
-	if err := mcnutils.WaitFor(d.stackAvailable); err != nil {
+	if err := mcnutils.WaitForSpecificOrError(d.stackAvailable, 60, 3*time.Second); err != nil {
 		return err
 	}
 
@@ -192,9 +194,9 @@ func (d *Driver) Create() error {
 	return nil
 }
 
-func (d *Driver) stackAvailable() bool {
+func (d *Driver) stackAvailable() (bool, error) {
 
-	log.Debug("Checking if the stack is available ")
+	log.Debug("Checking if the stack is available......")
 
 	svc := cloudformation.New(session.New())
 
@@ -206,15 +208,18 @@ func (d *Driver) stackAvailable() bool {
 	log.Debug(resp)
 
 	if err != nil {
-		log.Infof("Houston we have a problem")
-		log.Infof(err.Error())
-		return false
+		return false, err
 	}
-	if *resp.Stacks[0].StackStatus == cloudformation.ResourceStatusCreateComplete {
-		return true
+
+	if *resp.Stacks[0].StackStatus == cloudformation.StackStatusRollbackInProgress || *resp.Stacks[0].StackStatus == cloudformation.StackStatusRollbackComplete {
+		return false, errors.New("Stack Rollback Occured")
+	}
+
+	if *resp.Stacks[0].StackStatus == cloudformation.StackStatusCreateComplete {
+		return true, nil
 	} else {
 		log.Debug("Stack Not Available Yet")
-		return false
+		return false, nil
 	}
 }
 
@@ -262,9 +267,11 @@ func (d *Driver) GetURL() (string, error) {
 
 func (d *Driver) GetIP() (string, error) {
 
-	log.Debugf("the ip is %s ", *d.getInstance().PrivateIpAddress)
+	instance, err := d.getInstance()
 
-	instance := d.getInstance()
+	if err != nil {
+		return "", err
+	}
 
 	if d.UsePrivateIP {
 		return *instance.PrivateIpAddress, nil
@@ -273,7 +280,7 @@ func (d *Driver) GetIP() (string, error) {
 	return *instance.PublicIpAddress, nil
 }
 
-func (d *Driver) getInstance() ec2.Instance {
+func (d *Driver) getInstance() (ec2.Instance, error) {
 	svc := ec2.New(session.New())
 
 	params := &ec2.DescribeInstancesInput{
@@ -289,17 +296,22 @@ func (d *Driver) getInstance() ec2.Instance {
 	if err != nil {
 
 		log.Debug(err.Error())
+		return ec2.Instance{}, err
 
 	}
 
 	//this should return error
-	return *resp.Reservations[0].Instances[0]
+	return *resp.Reservations[0].Instances[0], nil
 
 }
 
 func (d *Driver) GetState() (state.State, error) {
 
-	inst := d.getInstance()
+	inst, err := d.getInstance()
+
+	if err != nil {
+		return state.Error, err
+	}
 
 	log.Debugf(*inst.State.Name)
 
@@ -354,21 +366,21 @@ func (d *Driver) Start() error {
 	return nil
 }
 
-func (d *Driver) instanceIsRunning() bool {
+func (d *Driver) instanceIsRunning() (bool, error) {
 
 	st, err := d.GetState()
 	if err != nil {
-		log.Debug(err)
+		return false, err
 	}
 	if st == state.Running {
-		return true
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
 func (d *Driver) waitForInstance() error {
 
-	if err := mcnutils.WaitFor(d.instanceIsRunning); err != nil {
+	if err := mcnutils.WaitForSpecificOrError(d.instanceIsRunning, 60, 3*time.Second); err != nil {
 		return err
 	}
 
@@ -416,8 +428,6 @@ func (d *Driver) Kill() error {
 		return err
 	}
 
-	
-
 	return nil
 }
 
@@ -436,8 +446,6 @@ func (d *Driver) Stop() error {
 	if err != nil {
 		return err
 	}
-
-	
 
 	return nil
 }
