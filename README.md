@@ -1,8 +1,6 @@
 AWS Cloud Formation Driver for Docker Machine
 ---
 
-#Using the Cloud Formation Driver for Docker Machine
-In my last post I discussed a new cloud formation driver that allows you to use docker-machine to initiate cloud formation scripts.  In this post I will show you how to use it.
 ##Setup
 First you want to make sure you have a valid cloud formration script. You can either use the one here (github.com) or create your own.  The file is JSON an can be edited either using your favorite text editor or the visual editor within the AWS console. 
 
