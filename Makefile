@@ -1,7 +1,7 @@
 default: build
 github_user := "jeffellin"
 project := "github.com/$(github_user)/$(current_dir)"
-version := "v0.1.0"
+version := "v0.1.2"
 version_description := "Docker Machine Plugin for Amazon Cloud Formation"
 human_name := "Cloud Formation Driver"
 export GO15VENDOREXPERIMENT = 1
@@ -43,7 +43,7 @@ cleanrelease:
 	git tag -d $(version)
 	git push origin :refs/tags/$(version)
 
-release: cross 
+release:  
 	git tag $(version)
 	git push --tags
 	github-release release \
@@ -58,7 +58,7 @@ release: cross
 				--user $(github_user) \
 				--repo $(repo) \
 				--tag $(version) \
-				--name bin/$(current_dir)_$$os-$$arch \
+				--name $(current_dir)_$$os-$$arch \
 				--file bin/$(current_dir)_$$os-$$arch; \
 		done; \
 	done
