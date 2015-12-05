@@ -6,12 +6,10 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/docker/machine/cli"
+	"github.com/codegangsta/cli"
 	"github.com/docker/machine/commands"
 	"github.com/docker/machine/commands/mcndirs"
 	"github.com/docker/machine/libmachine/log"
-	"github.com/docker/machine/libmachine/mcnutils"
-	"github.com/docker/machine/libmachine/ssh"
 	"github.com/docker/machine/version"
 )
 
@@ -74,21 +72,11 @@ func main() {
 	app.Name = path.Base(os.Args[0])
 	app.Author = "Docker Machine Contributors"
 	app.Email = "https://github.com/docker/machine"
-	app.Before = func(c *cli.Context) error {
-		// TODO: Need better handling of config, everything is too
-		// complected together right now.
-		if c.GlobalBool("native-ssh") {
-			ssh.SetDefaultClient(ssh.Native)
-		}
-		mcnutils.GithubAPIToken = c.GlobalString("github-api-token")
-		mcndirs.BaseDir = c.GlobalString("storage-path")
-		return nil
-	}
 
 	app.Commands = commands.Commands
 	app.CommandNotFound = cmdNotFound
 	app.Usage = "Create and manage machines running Docker."
-	app.Version = version.Version + " (" + version.GitCommit + ")"
+	app.Version = version.FullVersion()
 
 	log.Debug("Docker Machine Version: ", app.Version)
 
@@ -140,7 +128,6 @@ func main() {
 		},
 	}
 
-	// TODO: Close plugin servers in case of client panic.
 	if err := app.Run(os.Args); err != nil {
 		log.Error(err)
 	}

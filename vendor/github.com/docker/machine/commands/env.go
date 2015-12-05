@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"text/template"
 
 	"github.com/docker/machine/commands/mcndirs"
+	"github.com/docker/machine/libmachine"
+	"github.com/docker/machine/libmachine/check"
 	"github.com/docker/machine/libmachine/log"
 )
 
@@ -19,7 +22,12 @@ const (
 var (
 	errImproperEnvArgs      = errors.New("Error: Expected one machine name")
 	errImproperUnsetEnvArgs = errors.New("Error: Expected no machine name when the -u flag is present")
+	defaultUsageHinter      UsageHintGenerator
 )
+
+func init() {
+	defaultUsageHinter = &EnvUsageHintGenerator{}
+}
 
 type ShellConfig struct {
 	Prefix          string
@@ -34,49 +42,63 @@ type ShellConfig struct {
 	NoProxyValue    string
 }
 
-func cmdEnv(c CommandLine) error {
+func cmdEnv(c CommandLine, api libmachine.API) error {
+	var (
+		err      error
+		shellCfg *ShellConfig
+	)
+
 	// Ensure that log messages always go to stderr when this command is
 	// being run (it is intended to be run in a subshell)
 	log.SetOutWriter(os.Stderr)
 
 	if c.Bool("unset") {
-		return unset(c)
+		shellCfg, err = shellCfgUnset(c, api)
+		if err != nil {
+			return err
+		}
+	} else {
+		shellCfg, err = shellCfgSet(c, api)
+		if err != nil {
+			return err
+		}
 	}
-	return set(c)
+
+	return executeTemplateStdout(shellCfg)
 }
 
-func set(c CommandLine) error {
+func shellCfgSet(c CommandLine, api libmachine.API) (*ShellConfig, error) {
 	if len(c.Args()) != 1 {
-		return errImproperEnvArgs
+		return nil, errImproperEnvArgs
 	}
 
-	host, err := getFirstArgHost(c)
+	host, err := api.Load(c.Args().First())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	dockerHost, _, err := runConnectionBoilerplate(host, c)
+	dockerHost, _, err := check.DefaultConnChecker.Check(host, c.Bool("swarm"))
 	if err != nil {
-		return fmt.Errorf("Error running connection boilerplate: %s", err)
+		return nil, fmt.Errorf("Error checking TLS connection: %s", err)
 	}
 
-	userShell, err := getShell(c)
+	userShell, err := getShell(c.String("shell"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	shellCfg := &ShellConfig{
 		DockerCertPath:  filepath.Join(mcndirs.GetMachineDir(), host.Name),
 		DockerHost:      dockerHost,
 		DockerTLSVerify: "1",
-		UsageHint:       generateUsageHint(userShell, os.Args),
+		UsageHint:       defaultUsageHinter.GenerateUsageHint(userShell, os.Args),
 		MachineName:     host.Name,
 	}
 
 	if c.Bool("no-proxy") {
 		ip, err := host.Driver.GetIP()
 		if err != nil {
-			return fmt.Errorf("Error getting host IP: %s", err)
+			return nil, fmt.Errorf("Error getting host IP: %s", err)
 		}
 
 		noProxyVar, noProxyValue := findNoProxyFromEnv()
@@ -97,7 +119,7 @@ func set(c CommandLine) error {
 
 	switch userShell {
 	case "fish":
-		shellCfg.Prefix = "set -x "
+		shellCfg.Prefix = "set -gx "
 		shellCfg.Suffix = "\";\n"
 		shellCfg.Delimiter = " \""
 	case "powershell":
@@ -114,21 +136,21 @@ func set(c CommandLine) error {
 		shellCfg.Delimiter = "=\""
 	}
 
-	return executeTemplateStdout(shellCfg)
+	return shellCfg, nil
 }
 
-func unset(c CommandLine) error {
+func shellCfgUnset(c CommandLine, api libmachine.API) (*ShellConfig, error) {
 	if len(c.Args()) != 0 {
-		return errImproperUnsetEnvArgs
+		return nil, errImproperUnsetEnvArgs
 	}
 
-	userShell, err := getShell(c)
+	userShell, err := getShell(c.String("shell"))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	shellCfg := &ShellConfig{
-		UsageHint: generateUsageHint(userShell, os.Args),
+		UsageHint: defaultUsageHinter.GenerateUsageHint(userShell, os.Args),
 	}
 
 	if c.Bool("no-proxy") {
@@ -154,7 +176,7 @@ func unset(c CommandLine) error {
 		shellCfg.Delimiter = ""
 	}
 
-	return executeTemplateStdout(shellCfg)
+	return shellCfg, nil
 }
 
 func executeTemplateStdout(shellCfg *ShellConfig) error {
@@ -167,8 +189,7 @@ func executeTemplateStdout(shellCfg *ShellConfig) error {
 	return tmpl.Execute(os.Stdout, shellCfg)
 }
 
-func getShell(c CommandLine) (string, error) {
-	userShell := c.String("shell")
+func getShell(userShell string) (string, error) {
 	if userShell != "" {
 		return userShell, nil
 	}
@@ -188,7 +209,13 @@ func findNoProxyFromEnv() (string, string) {
 	return noProxyVar, noProxyValue
 }
 
-func generateUsageHint(userShell string, args []string) string {
+type UsageHintGenerator interface {
+	GenerateUsageHint(string, []string) string
+}
+
+type EnvUsageHintGenerator struct{}
+
+func (g *EnvUsageHintGenerator) GenerateUsageHint(userShell string, args []string) string {
 	cmd := ""
 	comment := "#"
 
@@ -207,4 +234,21 @@ func generateUsageHint(userShell string, args []string) string {
 	}
 
 	return fmt.Sprintf("%s Run this command to configure your shell: \n%s %s\n", comment, comment, cmd)
+}
+
+func detectShell() (string, error) {
+	// attempt to get the SHELL env var
+	shell := filepath.Base(os.Getenv("SHELL"))
+
+	log.Debugf("shell: %s", shell)
+	if shell == "" {
+		// check for windows env and not bash (i.e. msysgit, etc)
+		if runtime.GOOS == "windows" {
+			log.Printf("On Windows, please specify either 'cmd' or 'powershell' with the --shell flag.\n\n")
+		}
+
+		return "", ErrUnknownShell
+	}
+
+	return shell, nil
 }

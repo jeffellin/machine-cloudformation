@@ -1,6 +1,7 @@
 package virtualbox
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -74,4 +75,36 @@ func (v *VBoxCmdManager) vbmOutErr(args ...string) (string, string, error) {
 	}
 
 	return stdout.String(), stderrStr, err
+}
+
+func checkVBoxManageVersion(version string) error {
+	if !strings.HasPrefix(version, "5.") && !strings.HasPrefix(version, "4.") {
+		return fmt.Errorf("We support Virtualbox starting with version 4. Your VirtualBox install is %q. Please upgrade at https://www.virtualbox.org", version)
+	}
+
+	return nil
+}
+
+func parseKeyValues(stdOut string, regexp *regexp.Regexp, callback func(key, val string) error) error {
+	r := strings.NewReader(stdOut)
+	s := bufio.NewScanner(r)
+
+	for s.Scan() {
+		line := s.Text()
+		if line == "" {
+			continue
+		}
+
+		res := regexp.FindStringSubmatch(line)
+		if res == nil {
+			continue
+		}
+
+		key, val := res[1], res[2]
+		if err := callback(key, val); err != nil {
+			return err
+		}
+	}
+
+	return s.Err()
 }

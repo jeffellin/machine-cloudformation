@@ -177,7 +177,7 @@ func (d *Driver) Create() error {
 		return err
 	}
 
-	if err := mcnutils.WaitForSpecificOrError(d.stackAvailable, 60, 3*time.Second); err != nil {
+	if err := mcnutils.WaitForSpecificOrError(d.stackAvailable, 120, 3*time.Second); err != nil {
 		return err
 	}
 
@@ -380,7 +380,7 @@ func (d *Driver) instanceIsRunning() (bool, error) {
 
 func (d *Driver) waitForInstance() error {
 
-	if err := mcnutils.WaitForSpecificOrError(d.instanceIsRunning, 60, 3*time.Second); err != nil {
+	if err := mcnutils.WaitForSpecificOrError(d.instanceIsRunning, 120, 3*time.Second); err != nil {
 		return err
 	}
 

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"time"
 
@@ -60,7 +61,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		},
 		mcnflag.IntFlag{
 			Name:  "hyperv-disk-size",
-			Usage: "Hyper-V disk size for host in MB.",
+			Usage: "Hyper-V maximum size of dynamically expanding disk in MB.",
 			Value: defaultDiskSize,
 		},
 		mcnflag.IntFlag{
@@ -110,7 +111,7 @@ func (d *Driver) GetURL() (string, error) {
 	if ip == "" {
 		return "", nil
 	}
-	return fmt.Sprintf("tcp://%s:2376", ip), nil
+	return fmt.Sprintf("tcp://%s", net.JoinHostPort(ip, "2376")), nil
 }
 
 func (d *Driver) GetState() (state.State, error) {

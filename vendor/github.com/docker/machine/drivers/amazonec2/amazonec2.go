@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/url"
 	"strconv"
 	"strings"
@@ -137,7 +138,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 		},
 		mcnflag.StringFlag{
 			Name:   "amazonec2-ssh-user",
-			Usage:  "set the name of the ssh user",
+			Usage:  "Set the name of the ssh user",
 			Value:  defaultSSHUser,
 			EnvVar: "AWS_SSH_USER",
 		},
@@ -430,7 +431,7 @@ func (d *Driver) GetURL() (string, error) {
 	if ip == "" {
 		return "", nil
 	}
-	return fmt.Sprintf("tcp://%s:%d", ip, dockerPort), nil
+	return fmt.Sprintf("tcp://%s", net.JoinHostPort(ip, strconv.Itoa(dockerPort))), nil
 }
 
 func (d *Driver) GetIP() (string, error) {
