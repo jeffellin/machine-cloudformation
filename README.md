@@ -38,9 +38,9 @@ Paramaters are passed using the extraparams option and must be in the following 
 
 KeyName=KeyValue.  
 
-Multiple parameters can be passed using a pipe (|) as a seperator.
+Multiple parameters can be passed using a comma (,) as a seperator.
 
-e.g. InstanceType=t1.micro|EBSOptimized=false
+e.g. InstanceType=t1.micro,EBSOptimized=false
 
 ```
 docker-machine create --cloudformaiton-url https://s3.amazonws.amazon.com/somebucket/cloudformation.json --cloudformation-keypairname mykey --cloudformation-keypath /Users/jellin/.ssh/id_rsa
@@ -58,10 +58,6 @@ checkout the driver to $GOPATH/src/github.com/jeffellin/machine-cloudformation
 Run the make script within to build the driver binary.
 airname jeff --cloudformation-keypath /Users/jellin/.ssh/id_rsa --cloudformation-use-private-address  dockerdemo
 ```
-- Code has been tested with docker-machine .51
----
-Todo
-- Fix issue when Stack Creation fails,  the process will hang forver
-- Test on .51 which this branch is vendorized with.
+- Code has been tested with docker-machine .52
 
 

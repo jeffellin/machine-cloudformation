@@ -130,7 +130,7 @@ func (d *Driver) PreCreateCheck() error {
 }
 
 func (d *Driver) createParams() []*cloudformation.Parameter {
-	val := ""
+	val := d.CloudFormationParameters
 
 	a := []*cloudformation.Parameter{}
 
@@ -140,7 +140,7 @@ func (d *Driver) createParams() []*cloudformation.Parameter {
 	})
 
 	if val != "" {
-		s := strings.Split(val, "|")
+		s := strings.Split(val, ",")
 
 		for _, element := range s {
 			pairs := strings.Split(element, "=")
@@ -153,6 +153,8 @@ func (d *Driver) createParams() []*cloudformation.Parameter {
 			a = append(a, par)
 		}
 	}
+
+	fmt.Println(a)
 	return a
 }
 
