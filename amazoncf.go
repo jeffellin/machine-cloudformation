@@ -4,9 +4,6 @@ package amazoncf
  * This Driver will utilize a cloud formation stack to create an instance, a lot of the configuration,
  * security group, instance type, etc will be delegated to the cloud formation template.
  *
-Todo
- * Handle sititation where stack creation fails,  currently the driver just hangs waiting for completion
- * Unit Testing
 **/
 
 import (
@@ -51,6 +48,7 @@ type Driver struct {
 	KeyPairName              string
 	UsePrivateIP             bool
 	CloudFormationParameters string
+	CloudFormationTags       string
 }
 
 func NewDriver(hostName, storePath string) drivers.Driver {
@@ -84,6 +82,10 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Usage: "Additional CloudFormation Paramters",
 		},
 		mcnflag.StringFlag{
+			Name:  "cloudformation-tags",
+			Usage: "CloudFormation Tags",
+		},
+		mcnflag.StringFlag{
 			Name:  "cloudformation-ssh-user",
 			Usage: "set the name of the ssh user",
 			Value: defaultSSHUser,
@@ -102,17 +104,10 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.SSHUser = flags.String("cloudformation-ssh-user")
 	d.UsePrivateIP = flags.Bool("cloudformation-use-private-address")
 	d.CloudFormationParameters = flags.String("cloudformation-parameters")
+	d.CloudFormationTags = flags.String("cloudformation-tags")
 
 	if d.CloudFormationURL == "" {
 		return fmt.Errorf("cloudformation driver requires the --cloudformation-url")
-	}
-
-	if d.SSHPrivateKeyPath == "" {
-		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypath")
-	}
-
-	if d.KeyPairName == "" {
-		return fmt.Errorf("cloudformation driver requires the --cloudformation-keypairname")
 	}
 
 	return nil
@@ -134,11 +129,6 @@ func (d *Driver) createParams() []*cloudformation.Parameter {
 
 	a := []*cloudformation.Parameter{}
 
-	a = append(a, &cloudformation.Parameter{
-		ParameterKey:   aws.String("KeyName"),
-		ParameterValue: aws.String(d.KeyPairName),
-	})
-
 	if val != "" {
 		s := strings.Split(val, ",")
 
@@ -158,12 +148,38 @@ func (d *Driver) createParams() []*cloudformation.Parameter {
 	return a
 }
 
+func (d *Driver) createTags() []*cloudformation.Tag {
+	val := d.CloudFormationTags
+
+	a := []*cloudformation.Tag{}
+
+	if val != "" {
+		s := strings.Split(val, ",")
+
+		for _, element := range s {
+			pairs := strings.Split(element, "=")
+			key := pairs[0]
+			value := pairs[1]
+			par := &cloudformation.Tag{
+				Key:   aws.String(key),
+				Value: aws.String(value),
+			}
+			a = append(a, par)
+		}
+	}
+
+	fmt.Println(a)
+	return a
+}
+
 func (d *Driver) Create() error {
 
 	log.Debugf("Creating a new Instance for Stack: %s", d.MachineName)
 
-	if err := mcnutils.CopyFile(d.SSHPrivateKeyPath, d.GetSSHKeyPath()); err != nil {
-		return err
+	if d.SSHKeyPath != "" {
+		if err := mcnutils.CopyFile(d.SSHPrivateKeyPath, d.GetSSHKeyPath()); err != nil {
+			return err
+		}
 	}
 
 	svc := cloudformation.New(session.New())
@@ -172,6 +188,7 @@ func (d *Driver) Create() error {
 		StackName:   aws.String(d.MachineName),
 		TemplateURL: aws.String(d.CloudFormationURL),
 		Parameters:  d.createParams(),
+		Tags:        d.createTags(),
 	}
 	_, err := svc.CreateStack(params)
 
@@ -186,6 +203,9 @@ func (d *Driver) Create() error {
 	if err := d.getInstanceInfo(); err != nil {
 		return err
 	}
+	if err := waitFor(sshAvailableFunc(d)); err != nil {
+		return fmt.Errorf("Too many retries waiting for SSH to be available.  Last error: %s", err)
+	}
 
 	log.Debugf("created instance ID %s, IP address %s, Private IP address %s",
 		d.InstanceId,
@@ -194,6 +214,20 @@ func (d *Driver) Create() error {
 	)
 
 	return nil
+}
+
+func waitFor(f func() bool) error {
+	return mcnutils.WaitForSpecific(f, 120, 3*time.Second)
+}
+
+func sshAvailableFunc(d *Driver) func() bool {
+	return func() bool {
+		if _, err := drivers.RunSSHCommandFromDriver(d, "exit 0"); err != nil {
+			log.Debugf("Error getting ssh command 'exit 0' : %s", err)
+			return false
+		}
+		return true
+	}
 }
 
 func (d *Driver) stackAvailable() (bool, error) {
@@ -276,6 +310,7 @@ func (d *Driver) GetIP() (string, error) {
 	}
 
 	if d.UsePrivateIP {
+
 		return *instance.PrivateIpAddress, nil
 	}
 
@@ -342,6 +377,7 @@ func (d *Driver) GetSSHUsername() string {
 	if d.SSHUser == "" {
 		d.SSHUser = "ubuntu"
 	}
+
 	return d.SSHUser
 }
 

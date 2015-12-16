@@ -1,7 +1,7 @@
 default: build
 github_user := "jeffellin"
 project := "github.com/$(github_user)/$(current_dir)"
-version := "v0.1.3"
+version := "v0.1.4"
 version_description := "Docker Machine Plugin for Amazon Cloud Formation"
 human_name := "Cloud Formation Driver"
 export GO15VENDOREXPERIMENT = 1
