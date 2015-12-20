@@ -52,10 +52,12 @@ type Driver struct {
 	DiskSize            int
 	Boot2DockerURL      string
 	Boot2DockerImportVM string
+	HostDNSResolver     bool
 	HostOnlyCIDR        string
 	HostOnlyNicType     string
 	HostOnlyPromiscMode string
 	NoShare             bool
+	DNSProxy            bool
 }
 
 // NewDriver creates a new VirtualBox driver with default settings.
@@ -109,6 +111,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Value:  defaultBoot2DockerImportVM,
 			EnvVar: "VIRTUALBOX_BOOT2DOCKER_IMPORT_VM",
 		},
+		mcnflag.BoolFlag{
+			Name:   "virtualbox-host-dns-resolver",
+			Usage:  "Use the host DNS resolver",
+			EnvVar: "VIRTUALBOX_HOST_DNS_RESOLVER",
+		},
 		mcnflag.StringFlag{
 			Name:   "virtualbox-hostonly-cidr",
 			Usage:  "Specify the Host Only CIDR",
@@ -131,6 +138,11 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 			Name:   "virtualbox-no-share",
 			Usage:  "Disable the mount of your home directory",
 			EnvVar: "VIRTUALBOX_NO_SHARE",
+		},
+		mcnflag.BoolFlag{
+			Name:   "virtualbox-dns-proxy",
+			Usage:  "Proxy all DNS requests to the host",
+			EnvVar: "VIRTUALBOX_DNS_PROXY",
 		},
 	}
 }
@@ -173,10 +185,12 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.SwarmDiscovery = flags.String("swarm-discovery")
 	d.SSHUser = "docker"
 	d.Boot2DockerImportVM = flags.String("virtualbox-import-boot2docker-vm")
+	d.HostDNSResolver = flags.Bool("virtualbox-host-dns-resolver")
 	d.HostOnlyCIDR = flags.String("virtualbox-hostonly-cidr")
 	d.HostOnlyNicType = flags.String("virtualbox-hostonly-nictype")
 	d.HostOnlyPromiscMode = flags.String("virtualbox-hostonly-nicpromisc")
 	d.NoShare = flags.Bool("virtualbox-no-share")
+	d.DNSProxy = flags.Bool("virtualbox-dns-proxy")
 
 	return nil
 }
@@ -190,7 +204,7 @@ func (d *Driver) PreCreateCheck() error {
 	}
 
 	// Check that VBoxManage is of a supported version
-	if err = checkVBoxManageVersion(version); err != nil {
+	if err = checkVBoxManageVersion(strings.TrimSpace(version)); err != nil {
 		return err
 	}
 
@@ -223,6 +237,9 @@ func (d *Driver) IsVTXDisabledInTheVM() (bool, error) {
 			return true, nil
 		}
 		if strings.Contains(scanner.Text(), "the host CPU does NOT support HW virtualization") {
+			return true, nil
+		}
+		if strings.Contains(scanner.Text(), "VERR_VMX_UNABLE_TO_START_VM") {
 			return true, nil
 		}
 	}
@@ -302,6 +319,16 @@ func (d *Driver) Create() error {
 		cpus = 32
 	}
 
+	hostDNSResolver := "off"
+	if d.HostDNSResolver {
+		hostDNSResolver = "on"
+	}
+
+	dnsProxy := "off"
+	if d.DNSProxy {
+		dnsProxy = "on"
+	}
+
 	if err := d.vbm("modifyvm", d.MachineName,
 		"--firmware", "bios",
 		"--bioslogofadein", "off",
@@ -314,8 +341,8 @@ func (d *Driver) Create() error {
 		"--acpi", "on",
 		"--ioapic", "on",
 		"--rtcuseutc", "on",
-		"--natdnshostresolver1", "off",
-		"--natdnsproxy1", "off",
+		"--natdnshostresolver1", hostDNSResolver,
+		"--natdnsproxy1", dnsProxy,
 		"--cpuhotplug", "off",
 		"--pae", "on",
 		"--hpet", "on",

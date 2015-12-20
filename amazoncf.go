@@ -172,11 +172,19 @@ func (d *Driver) createTags() []*cloudformation.Tag {
 	return a
 }
 
+func (d *Driver) GetSSHKeyPath() string {
+	//base driver supplised id_rsa by default,  in our case I don't want to assume that key is in the machine directory.
+	//if its not then user should supply it in the machine create.
+	return d.SSHKeyPath
+}
+
 func (d *Driver) Create() error {
 
 	log.Debugf("Creating a new Instance for Stack: %s", d.MachineName)
 
 	if d.SSHKeyPath != "" {
+		log.Debugf("Copying Key to Machine Directory: %s", d.GetSSHKeyPath)
+
 		if err := mcnutils.CopyFile(d.SSHPrivateKeyPath, d.GetSSHKeyPath()); err != nil {
 			return err
 		}

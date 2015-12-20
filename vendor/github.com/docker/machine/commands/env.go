@@ -130,6 +130,10 @@ func shellCfgSet(c CommandLine, api libmachine.API) (*ShellConfig, error) {
 		shellCfg.Prefix = "SET "
 		shellCfg.Suffix = "\n"
 		shellCfg.Delimiter = "="
+	case "emacs":
+		shellCfg.Prefix = "(setenv \""
+		shellCfg.Suffix = "\")\n"
+		shellCfg.Delimiter = "\" \""
 	default:
 		shellCfg.Prefix = "export "
 		shellCfg.Suffix = "\"\n"
@@ -170,6 +174,10 @@ func shellCfgUnset(c CommandLine, api libmachine.API) (*ShellConfig, error) {
 		shellCfg.Prefix = "SET "
 		shellCfg.Suffix = "\n"
 		shellCfg.Delimiter = "="
+	case "emacs":
+		shellCfg.Prefix = "(setenv \""
+		shellCfg.Suffix = ")\n"
+		shellCfg.Delimiter = "\" nil"
 	default:
 		shellCfg.Prefix = "unset "
 		shellCfg.Suffix = "\n"
@@ -229,6 +237,9 @@ func (g *EnvUsageHintGenerator) GenerateUsageHint(userShell string, args []strin
 	case "cmd":
 		cmd = fmt.Sprintf("\tFOR /f \"tokens=*\" %%i IN ('%s') DO %%i", commandLine)
 		comment = "REM"
+	case "emacs":
+		cmd = fmt.Sprintf("(with-temp-buffer (shell-command \"%s\" (current-buffer)) (eval-buffer))", commandLine)
+		comment = ";;"
 	default:
 		cmd = fmt.Sprintf("eval \"$(%s)\"", commandLine)
 	}
@@ -244,7 +255,7 @@ func detectShell() (string, error) {
 	if shell == "" {
 		// check for windows env and not bash (i.e. msysgit, etc)
 		if runtime.GOOS == "windows" {
-			log.Printf("On Windows, please specify either 'cmd' or 'powershell' with the --shell flag.\n\n")
+			log.Info("On Windows, please specify either 'cmd' or 'powershell' with the --shell flag.\n\n")
 		}
 
 		return "", ErrUnknownShell

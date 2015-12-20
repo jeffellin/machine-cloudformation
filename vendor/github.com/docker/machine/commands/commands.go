@@ -11,6 +11,7 @@ import (
 	"github.com/docker/machine/commands/mcndirs"
 	"github.com/docker/machine/libmachine"
 	"github.com/docker/machine/libmachine/cert"
+	"github.com/docker/machine/libmachine/crashreport"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/docker/machine/libmachine/log"
 	"github.com/docker/machine/libmachine/mcnutils"
@@ -22,6 +23,7 @@ var (
 	ErrUnknownShell       = errors.New("Error: Unknown shell")
 	ErrNoMachineSpecified = errors.New("Error: Expected to get one or more machine names as arguments")
 	ErrExpectedOneMachine = errors.New("Error: Expected one machine name as an argument")
+	ErrTooManyArguments   = errors.New("Error: Too many arguments given")
 )
 
 // CommandLine contains all the information passed to the commands on the command line.
@@ -35,6 +37,8 @@ type CommandLine interface {
 	Args() cli.Args
 
 	Bool(name string) bool
+
+	Int(name string) int
 
 	String(name string) string
 
@@ -64,9 +68,14 @@ func (c *contextCommandLine) Application() *cli.App {
 }
 
 func runAction(actionName string, c CommandLine, api libmachine.API) error {
-	hosts, err := persist.LoadHosts(api, c.Args())
-	if err != nil {
-		return err
+	hosts, hostsInError := persist.LoadHosts(api, c.Args())
+
+	if len(hostsInError) > 0 {
+		errs := []error{}
+		for _, err := range hostsInError {
+			errs = append(errs, err)
+		}
+		return consolidateErrs(errs)
 	}
 
 	if len(hosts) == 0 {
@@ -95,6 +104,8 @@ func fatalOnError(command func(commandLine CommandLine, api libmachine.API) erro
 		}
 		api.GithubAPIToken = context.GlobalString("github-api-token")
 		api.Filestore.Path = context.GlobalString("storage-path")
+
+		crashreport.Configure(context.GlobalString("bugsnag-api-token"))
 
 		// TODO (nathanleclaire): These should ultimately be accessed
 		// through the libmachine client by the rest of the code and
@@ -162,7 +173,7 @@ var Commands = []cli.Command{
 			},
 			cli.StringFlag{
 				Name:  "shell",
-				Usage: "Force environment to be configured for specified shell",
+				Usage: "Force environment to be configured for a specified shell: [fish, cmd, powershell], default is sh/bash",
 			},
 			cli.BoolFlag{
 				Name:  "unset, u",
@@ -210,6 +221,11 @@ var Commands = []cli.Command{
 				Usage: "Filter output based on conditions provided",
 				Value: &cli.StringSlice{},
 			},
+			cli.IntFlag{
+				Name:  "timeout, t",
+				Usage: fmt.Sprintf("Timeout in seconds, default to %s", stateTimeoutDuration),
+				Value: lsDefaultTimeout,
+			},
 		},
 		Name:   "ls",
 		Usage:  "List machines",
@@ -237,7 +253,11 @@ var Commands = []cli.Command{
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "force, f",
-				Usage: "Remove local configuration even if machine cannot be removed",
+				Usage: "Remove local configuration even if machine cannot be removed, also implies an automatic yes (`-y`)",
+			},
+			cli.BoolFlag{
+				Name:  "y",
+				Usage: "Assumes automatic yes to proceed with remove, without prompting further user confirmation",
 			},
 		},
 		Name:        "rm",
@@ -296,7 +316,7 @@ var Commands = []cli.Command{
 	},
 	{
 		Name:   "version",
-		Usage:  "Show the Docker Machine version information",
+		Usage:  "Show the Docker Machine version or a machine docker version",
 		Action: fatalOnError(cmdVersion),
 	},
 }
@@ -307,7 +327,9 @@ func printIP(h *host.Host) func() error {
 		if err != nil {
 			return fmt.Errorf("Error getting IP address: %s", err)
 		}
+
 		fmt.Println(ip)
+
 		return nil
 	}
 }

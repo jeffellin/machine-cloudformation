@@ -82,9 +82,7 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 
 // NewDriver instantiates a Rackspace driver.
 func NewDriver(machineName, storePath string) drivers.Driver {
-	log.WithFields(log.Fields{
-		"machineName": machineName,
-	}).Debug("Instantiating Rackspace driver.")
+	log.Debug("Instantiating Rackspace driver.", map[string]string{"machineName": machineName})
 
 	inner := openstack.NewDerivedDriver(machineName, storePath)
 	driver := &Driver{
@@ -136,10 +134,10 @@ func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	}
 
 	if d.ImageId == "" {
-		// Default to the Ubuntu 14.04 image.
+		// Default to the Ubuntu 15.10 image.
 		// This is done here, rather than in the option registration, to keep the default value
 		// from making "machine create --help" ugly.
-		d.ImageId = "598a4282-f14b-4e50-af4c-b3e52749d9f9"
+		d.ImageId = "59a3fadd-93e7-4674-886a-64883e17115f"
 	}
 
 	if d.EndpointType != "publicURL" && d.EndpointType != "adminURL" && d.EndpointType != "internalURL" {

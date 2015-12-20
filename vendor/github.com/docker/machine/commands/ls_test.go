@@ -6,8 +6,12 @@ import (
 
 	"time"
 
+	"errors"
+
 	"github.com/docker/machine/drivers/fakedriver"
+	"github.com/docker/machine/libmachine/engine"
 	"github.com/docker/machine/libmachine/host"
+	"github.com/docker/machine/libmachine/mcndockerclient"
 	"github.com/docker/machine/libmachine/state"
 	"github.com/docker/machine/libmachine/swarm"
 	"github.com/stretchr/testify/assert"
@@ -38,9 +42,21 @@ func TestParseFiltersName(t *testing.T) {
 	assert.Equal(t, actual, FilterOptions{Name: []string{"dev"}})
 }
 
+func TestParseFiltersLabel(t *testing.T) {
+	actual, err := parseFilters([]string{"label=com.example.foo=bar"})
+	assert.EqualValues(t, actual, FilterOptions{Labels: []string{"com.example.foo=bar"}})
+	assert.Nil(t, err, "returned err value must be Nil")
+}
+
 func TestParseFiltersAll(t *testing.T) {
 	actual, _ := parseFilters([]string{"swarm=foo", "driver=bar", "state=Stopped", "name=dev"})
 	assert.Equal(t, actual, FilterOptions{SwarmName: []string{"foo"}, DriverName: []string{"bar"}, State: []string{"Stopped"}, Name: []string{"dev"}})
+}
+
+func TestParseFiltersAllCase(t *testing.T) {
+	actual, err := parseFilters([]string{"sWarM=foo", "DrIver=bar", "StaTe=Stopped", "NAMe=dev", "LABEL=com=foo"})
+	assert.Equal(t, actual, FilterOptions{SwarmName: []string{"foo"}, DriverName: []string{"bar"}, State: []string{"Stopped"}, Name: []string{"dev"}, Labels: []string{"com=foo"}})
+	assert.Nil(t, err, "err should be nil")
 }
 
 func TestParseFiltersDuplicates(t *testing.T) {
@@ -53,13 +69,42 @@ func TestParseFiltersValueWithEqual(t *testing.T) {
 	assert.Equal(t, actual, FilterOptions{DriverName: []string{"bar=baz"}})
 }
 
+func TestFilterHostsReturnsFiltersValuesCaseInsensitive(t *testing.T) {
+	opts := FilterOptions{
+		SwarmName:  []string{"fOo"},
+		DriverName: []string{"ViRtUaLboX"},
+		State:      []string{"StOPpeD"},
+		Labels:     []string{"com.EXAMPLE.app=FOO"},
+	}
+	hosts := []*host.Host{}
+	actual := filterHosts(hosts, opts)
+	assert.EqualValues(t, actual, hosts)
+}
 func TestFilterHostsReturnsSameGivenNoFilters(t *testing.T) {
 	opts := FilterOptions{}
 	hosts := []*host.Host{
 		{
-			Name:        "testhost",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
+			Name:       "testhost",
+			DriverName: "fakedriver",
+		},
+	}
+	actual := filterHosts(hosts, opts)
+	assert.EqualValues(t, actual, hosts)
+}
+
+func TestFilterHostsReturnSetLabel(t *testing.T) {
+	opts := FilterOptions{
+		Labels: []string{"com.class.foo=bar"},
+	}
+	hosts := []*host.Host{
+		{
+			Name:       "testhost",
+			DriverName: "fakedriver",
+			HostOptions: &host.Options{
+				EngineOptions: &engine.Options{
+					Labels: []string{"com.class.foo=bar"},
+				},
+			},
 		},
 	}
 	actual := filterHosts(hosts, opts)
@@ -80,9 +125,8 @@ func TestFilterHostsReturnsEmptyGivenNonMatchingFilters(t *testing.T) {
 	}
 	hosts := []*host.Host{
 		{
-			Name:        "testhost",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
+			Name:       "testhost",
+			DriverName: "fakedriver",
 		},
 	}
 	assert.Empty(t, filterHosts(hosts, opts))
@@ -125,21 +169,18 @@ func TestFilterHostsByDriverName(t *testing.T) {
 	}
 	node1 :=
 		&host.Host{
-			Name:        "node1",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
+			Name:       "node1",
+			DriverName: "fakedriver",
 		}
 	node2 :=
 		&host.Host{
-			Name:        "node2",
-			DriverName:  "virtualbox",
-			HostOptions: &host.Options{},
+			Name:       "node2",
+			DriverName: "virtualbox",
 		}
 	node3 :=
 		&host.Host{
-			Name:        "node3",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
+			Name:       "node3",
+			DriverName: "fakedriver",
 		}
 	hosts := []*host.Host{node1, node2, node3}
 	expected := []*host.Host{node1, node3}
@@ -153,24 +194,21 @@ func TestFilterHostsByState(t *testing.T) {
 	}
 	node1 :=
 		&host.Host{
-			Name:        "node1",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Paused},
+			Name:       "node1",
+			DriverName: "fakedriver",
+			Driver:     &fakedriver.Driver{MockState: state.Paused},
 		}
 	node2 :=
 		&host.Host{
-			Name:        "node2",
-			DriverName:  "virtualbox",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Stopped},
+			Name:       "node2",
+			DriverName: "virtualbox",
+			Driver:     &fakedriver.Driver{MockState: state.Stopped},
 		}
 	node3 :=
 		&host.Host{
-			Name:        "node3",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Running},
+			Name:       "node3",
+			DriverName: "fakedriver",
+			Driver:     &fakedriver.Driver{MockState: state.Running},
 		}
 	hosts := []*host.Host{node1, node2, node3}
 	expected := []*host.Host{node1, node2}
@@ -184,31 +222,27 @@ func TestFilterHostsByName(t *testing.T) {
 	}
 	node1 :=
 		&host.Host{
-			Name:        "fire",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Paused, MockName: "fire"},
+			Name:       "fire",
+			DriverName: "fakedriver",
+			Driver:     &fakedriver.Driver{MockState: state.Paused, MockName: "fire"},
 		}
 	node2 :=
 		&host.Host{
-			Name:        "ice",
-			DriverName:  "adriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Paused, MockName: "ice"},
+			Name:       "ice",
+			DriverName: "adriver",
+			Driver:     &fakedriver.Driver{MockState: state.Paused, MockName: "ice"},
 		}
 	node3 :=
 		&host.Host{
-			Name:        "air",
-			DriverName:  "nodriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Paused, MockName: "air"},
+			Name:       "air",
+			DriverName: "nodriver",
+			Driver:     &fakedriver.Driver{MockState: state.Paused, MockName: "air"},
 		}
 	node4 :=
 		&host.Host{
-			Name:        "water",
-			DriverName:  "falsedriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Paused, MockName: "water"},
+			Name:       "water",
+			DriverName: "falsedriver",
+			Driver:     &fakedriver.Driver{MockState: state.Paused, MockName: "water"},
 		}
 	hosts := []*host.Host{node1, node2, node3, node4}
 	expected := []*host.Host{node1, node2, node3}
@@ -223,21 +257,18 @@ func TestFilterHostsMultiFlags(t *testing.T) {
 	}
 	node1 :=
 		&host.Host{
-			Name:        "node1",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
+			Name:       "node1",
+			DriverName: "fakedriver",
 		}
 	node2 :=
 		&host.Host{
-			Name:        "node2",
-			DriverName:  "virtualbox",
-			HostOptions: &host.Options{},
+			Name:       "node2",
+			DriverName: "virtualbox",
 		}
 	node3 :=
 		&host.Host{
-			Name:        "node3",
-			DriverName:  "softlayer",
-			HostOptions: &host.Options{},
+			Name:       "node3",
+			DriverName: "softlayer",
 		}
 	hosts := []*host.Host{node1, node2, node3}
 	expected := []*host.Host{node1, node2}
@@ -250,35 +281,34 @@ func TestFilterHostsDifferentFlagsProduceAND(t *testing.T) {
 		DriverName: []string{"virtualbox"},
 		State:      []string{"Running"},
 	}
-	node1 :=
-		&host.Host{
-			Name:        "node1",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Paused},
-		}
-	node2 :=
-		&host.Host{
-			Name:        "node2",
-			DriverName:  "virtualbox",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Stopped},
-		}
-	node3 :=
-		&host.Host{
-			Name:        "node3",
-			DriverName:  "fakedriver",
-			HostOptions: &host.Options{},
-			Driver:      &fakedriver.Driver{MockState: state.Running},
-		}
-	hosts := []*host.Host{node1, node2, node3}
-	expected := []*host.Host{}
 
-	assert.EqualValues(t, filterHosts(hosts, opts), expected)
+	hosts := []*host.Host{
+		{
+			Name:       "node1",
+			DriverName: "fakedriver",
+			Driver:     &fakedriver.Driver{MockState: state.Paused},
+		},
+		{
+			Name:       "node2",
+			DriverName: "virtualbox",
+			Driver:     &fakedriver.Driver{MockState: state.Stopped},
+		},
+		{
+			Name:       "node3",
+			DriverName: "fakedriver",
+			Driver:     &fakedriver.Driver{MockState: state.Running},
+		},
+	}
+
+	assert.Empty(t, filterHosts(hosts, opts))
 }
 
 func TestGetHostListItems(t *testing.T) {
+	defer func(versioner mcndockerclient.DockerVersioner) { mcndockerclient.CurrentDockerVersioner = versioner }(mcndockerclient.CurrentDockerVersioner)
+	mcndockerclient.CurrentDockerVersioner = &mcndockerclient.FakeDockerVersioner{Version: "1.9"}
+
 	// TODO: Ideally this would mockable via interface instead.
+	defer func(host string) { os.Setenv("DOCKER_HOST", host) }(os.Getenv("DOCKER_HOST"))
 	os.Setenv("DOCKER_HOST", "tcp://active.host.com:2376")
 
 	hosts := []*host.Host{
@@ -288,17 +318,11 @@ func TestGetHostListItems(t *testing.T) {
 				MockState: state.Running,
 				MockIP:    "active.host.com",
 			},
-			HostOptions: &host.Options{
-				SwarmOptions: &swarm.Options{},
-			},
 		},
 		{
 			Name: "bar100",
 			Driver: &fakedriver.Driver{
 				MockState: state.Stopped,
-			},
-			HostOptions: &host.Options{
-				SwarmOptions: &swarm.Options{},
 			},
 		},
 		{
@@ -306,44 +330,37 @@ func TestGetHostListItems(t *testing.T) {
 			Driver: &fakedriver.Driver{
 				MockState: state.Error,
 			},
-			HostOptions: &host.Options{
-				SwarmOptions: &swarm.Options{},
-			},
 		},
 	}
 
 	expected := []struct {
-		name   string
-		state  state.State
-		active bool
-		error  string
+		name    string
+		state   state.State
+		active  bool
+		version string
+		error   string
 	}{
-		{"bar10", state.Error, false, "Unable to get ip"},
-		{"bar100", state.Stopped, false, ""},
-		{"foo", state.Running, true, ""},
+		{"bar10", state.Error, false, "Unknown", "Unable to get ip"},
+		{"bar100", state.Stopped, false, "Unknown", ""},
+		{"foo", state.Running, true, "v1.9", ""},
 	}
 
-	items := getHostListItems(hosts)
+	items := getHostListItems(hosts, map[string]error{})
 
 	for i := range expected {
 		assert.Equal(t, expected[i].name, items[i].Name)
 		assert.Equal(t, expected[i].state, items[i].State)
 		assert.Equal(t, expected[i].active, items[i].Active)
+		assert.Equal(t, expected[i].version, items[i].DockerVersion)
 		assert.Equal(t, expected[i].error, items[i].Error)
 	}
-
-	os.Unsetenv("DOCKER_HOST")
 }
 
-// issue #1908
 func TestGetHostListItemsEnvDockerHostUnset(t *testing.T) {
-	orgDockerHost := os.Getenv("DOCKER_HOST")
-	defer func() {
-		// revert DOCKER_HOST
-		os.Setenv("DOCKER_HOST", orgDockerHost)
-	}()
+	defer func(versioner mcndockerclient.DockerVersioner) { mcndockerclient.CurrentDockerVersioner = versioner }(mcndockerclient.CurrentDockerVersioner)
+	mcndockerclient.CurrentDockerVersioner = &mcndockerclient.FakeDockerVersioner{Version: "1.9"}
 
-	// unset DOCKER_HOST
+	defer func(host string) { os.Setenv("DOCKER_HOST", host) }(os.Getenv("DOCKER_HOST"))
 	os.Unsetenv("DOCKER_HOST")
 
 	hosts := []*host.Host{
@@ -353,38 +370,17 @@ func TestGetHostListItemsEnvDockerHostUnset(t *testing.T) {
 				MockState: state.Running,
 				MockIP:    "120.0.0.1",
 			},
-			HostOptions: &host.Options{
-				SwarmOptions: &swarm.Options{
-					Master:    false,
-					Address:   "",
-					Discovery: "",
-				},
-			},
 		},
 		{
 			Name: "bar",
 			Driver: &fakedriver.Driver{
 				MockState: state.Stopped,
 			},
-			HostOptions: &host.Options{
-				SwarmOptions: &swarm.Options{
-					Master:    false,
-					Address:   "",
-					Discovery: "",
-				},
-			},
 		},
 		{
 			Name: "baz",
 			Driver: &fakedriver.Driver{
 				MockState: state.Saved,
-			},
-			HostOptions: &host.Options{
-				SwarmOptions: &swarm.Options{
-					Master:    false,
-					Address:   "",
-					Discovery: "",
-				},
 			},
 		},
 	}
@@ -398,7 +394,8 @@ func TestGetHostListItemsEnvDockerHostUnset(t *testing.T) {
 		"baz": {state.Saved, false},
 	}
 
-	items := getHostListItems(hosts)
+	// TEST
+	items := getHostListItems(hosts, map[string]error{})
 
 	for _, item := range items {
 		expected := expected[item.Name]
@@ -429,12 +426,13 @@ func TestIsActive(t *testing.T) {
 
 		actual := isActive(c.state, "tcp://1.2.3.4:2376")
 
-		assert.Equal(t, c.expected, actual, "IsActive(%s, \"%s\") should return %v, but didn't", c.state, c.dockerHost, c.expected)
+		assert.Equal(t, c.expected, actual)
 	}
 }
 
 func TestGetHostStateTimeout(t *testing.T) {
-	originalTimeout := stateTimeoutDuration
+	defer func(timeout time.Duration) { stateTimeoutDuration = timeout }(stateTimeoutDuration)
+	stateTimeoutDuration = 1 * time.Millisecond
 
 	hosts := []*host.Host{
 		{
@@ -445,15 +443,11 @@ func TestGetHostStateTimeout(t *testing.T) {
 		},
 	}
 
-	stateTimeoutDuration = 1 * time.Second
-	hostItems := getHostListItems(hosts)
-	hostItem := hostItems[0]
+	hostItem := getHostListItems(hosts, nil)[0]
 
 	assert.Equal(t, "foo", hostItem.Name)
 	assert.Equal(t, state.Timeout, hostItem.State)
 	assert.Equal(t, "Driver", hostItem.DriverName)
-
-	stateTimeoutDuration = originalTimeout
 }
 
 func TestGetHostStateError(t *testing.T) {
@@ -466,8 +460,7 @@ func TestGetHostStateError(t *testing.T) {
 		},
 	}
 
-	hostItems := getHostListItems(hosts)
-	hostItem := hostItems[0]
+	hostItem := getHostListItems(hosts, nil)[0]
 
 	assert.Equal(t, "foo", hostItem.Name)
 	assert.Equal(t, state.Error, hostItem.State)
@@ -475,4 +468,36 @@ func TestGetHostStateError(t *testing.T) {
 	assert.Empty(t, hostItem.URL)
 	assert.Equal(t, "Unable to get ip", hostItem.Error)
 	assert.Nil(t, hostItem.SwarmOptions)
+}
+
+func TestGetSomeHostInError(t *testing.T) {
+	defer func(versioner mcndockerclient.DockerVersioner) { mcndockerclient.CurrentDockerVersioner = versioner }(mcndockerclient.CurrentDockerVersioner)
+	mcndockerclient.CurrentDockerVersioner = &mcndockerclient.FakeDockerVersioner{Version: "1.9"}
+
+	hosts := []*host.Host{
+		{
+			Name: "foo",
+			Driver: &fakedriver.Driver{
+				MockState: state.Running,
+			},
+		},
+	}
+	hostsInError := map[string]error{
+		"bar": errors.New("invalid memory address or nil pointer dereference"),
+	}
+
+	hostItems := getHostListItems(hosts, hostsInError)
+	assert.Equal(t, 2, len(hostItems))
+
+	hostItem := hostItems[0]
+	assert.Equal(t, "bar", hostItem.Name)
+	assert.Equal(t, state.Error, hostItem.State)
+	assert.Equal(t, "not found", hostItem.DriverName)
+	assert.Empty(t, hostItem.URL)
+	assert.Equal(t, "invalid memory address or nil pointer dereference", hostItem.Error)
+	assert.Nil(t, hostItem.SwarmOptions)
+
+	hostItem = hostItems[1]
+	assert.Equal(t, "foo", hostItem.Name)
+	assert.Equal(t, state.Running, hostItem.State)
 }

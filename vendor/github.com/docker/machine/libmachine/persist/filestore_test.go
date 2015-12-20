@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	"github.com/docker/machine/commands/mcndirs"
@@ -51,6 +52,17 @@ func TestStoreSave(t *testing.T) {
 	path := filepath.Join(store.GetMachinesDir(), h.Name)
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		t.Fatalf("Host path doesn't exist: %s", path)
+	}
+
+	files, _ := ioutil.ReadDir(path)
+	for _, f := range files {
+		r, err := regexp.Compile("config.json.tmp*")
+		if err != nil {
+			t.Fatalf("Failed to compile regexp string")
+		}
+		if r.MatchString(f.Name()) {
+			t.Fatalf("Failed to remove temp filestore:%s", f.Name())
+		}
 	}
 }
 
@@ -226,7 +238,7 @@ func TestStoreLoad(t *testing.T) {
 
 	h.Driver = realDriver
 
-	actualURL, err := h.GetURL()
+	actualURL, err := h.URL()
 	if err != nil {
 		t.Fatal(err)
 	}
