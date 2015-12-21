@@ -1,0 +1,10 @@
+package: main
+import:
+- package: github.com/docker/machine
+  version: ^v0.5.4
+  repo: git@github.com:docker/machine.git
+  vcs: git
+- package: github.com/aws/aws-sdk-go
+  version: ^v1.0.6
+  repo: git@github.com:aws/aws-sdk-go.git
+  vcs: git
