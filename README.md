@@ -60,6 +60,10 @@ You can even remove the stack with the docker-machine rm command.  Removing the 
 ##Building the driver
 checkout the driver to $GOPATH/src/github.com/jeffellin/machine-cloudformation
 
+install the dependencies using [glide](https://github.com/Masterminds/glide)
+
+    glide install
+
 Run the make script within to build the driver binary.
 
-```
+    make build
