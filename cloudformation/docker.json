@@ -1,192 +1,181 @@
 {
-   "AWSTemplateFormatVersion":"2010-09-09",
-   "Metadata":{
-      "AWS::CloudFormation::Designer":{
-         "b341410b-d001-4e9f-bcc2-d4b22545586c":{
-            "size":{
-               "width":60,
-               "height":60
-            },
-            "position":{
-               "x":50,
-               "y":20
-            },
-            "z":0,
-            "embeds":[
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "b341410b-d001-4e9f-bcc2-d4b22545586c": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 50,
+          "y": 20
+        },
+        "z": 0,
+        "embeds": [
 
-            ]
-         },
-         "6e47b9d7-5cef-4afa-ace4-0448c13a5c45":{
-            "size":{
-               "width":60,
-               "height":60
-            },
-            "position":{
-               "x":240,
-               "y":110
-            },
-            "z":0,
-            "embeds":[
-
-            ],
-            "isconnectedto":[
-               "b341410b-d001-4e9f-bcc2-d4b22545586c"
-            ]
-         },
-         "9970780f-3963-4506-8157-f3bb4635d1f0":{
-            "source":{
-               "id":"6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
-            },
-            "target":{
-               "id":"b341410b-d001-4e9f-bcc2-d4b22545586c"
-            },
-            "z":1
-         },
-         "d53ebd66-7a40-4abe-8413-c76a0be72197":{
-            "size":{
-               "width":60,
-               "height":60
-            },
-            "position":{
-               "x":420,
-               "y":30
-            },
-            "z":0,
-            "embeds":[
-
-            ],
-            "dependson":[
-               "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
-            ],
-            "isrelatedto":[
-               "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
-            ]
-         },
-         "f702acfc-479c-4676-acba-f2895895e465":{
-            "source":{
-               "id":"d53ebd66-7a40-4abe-8413-c76a0be72197"
-            },
-            "target":{
-               "id":"6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
-            },
-            "z":11
-         }
-      }
-   },
-   "Resources":{
-      "RC1U4LQ":{
-         "Type":"AWS::Route53::RecordSet",
-         "Properties":{
-            "ResourceRecords":[
-               {
-                  "Fn::GetAtt":[
-                     "LoadBalancer",
-                     "DNSName"
-                  ]
-               }
-            ],
-            "HostedZoneId":"Z23WIQQ2267T87",
-            "Name":{
-               "Fn::Join":[
-                  ".",
-                  [
-                     {
-                        "Ref":"AWS::StackName"
-                     },
-                     "ellin.com"
-                  ]
-               ]
-            },
-            "Type":"CNAME",
-            "TTL":"30"
-         },
-         "Metadata":{
-            "AWS::CloudFormation::Designer":{
-               "id":"d53ebd66-7a40-4abe-8413-c76a0be72197"
-            }
-         },
-         "DependsOn":[
-            "LoadBalancer"
-         ]
+        ]
       },
-      "LoadBalancer":{
-         "Type":"AWS::ElasticLoadBalancing::LoadBalancer",
-         "Properties":{
-            "Instances":[
-               {
-                  "Ref":"EC2Instance"
-               }
-            ],
-            "Listeners":[
-               {
-                  "InstancePort":"8081",
-                  "InstanceProtocol":"HTTP",
-                  "Protocol":"HTTPS",
-                  "LoadBalancerPort":"443",
-                  "SSLCertificateId":"arn:aws:iam::2345235:server-certificate/ellin"
-               }
-            ],
-            "Metadata":{
-               "AWS::CloudFormation::Designer":{
-                  "id":"6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
-               }
-            }
-         },
-         "EC2Instance":{
-            "Type":"AWS::EC2::Instance",
-            "Properties":{
-               "ImageId":"ami-5f709f34",
-               "KeyName":{
-                  "Ref":"KeyName"
-               },
-               "InstanceType":"m4.4xlarge",
-               "SubnetId":"subnet-2342abec0f",
-               "SecurityGroupIds":[
-                  "sg-bb8bb5dc"
-               ],
-               "Volumes":[
-                  {
-                     "VolumeId":{
-                        "Ref":"NewVolume"
-                     },
-                     "Device":"/dev/sda"
-                  }
-               ],
-               "Tags":[
-                  {
-                     "Key":"Name",
-                     "Value":{
-                        "Ref":"AWS::StackName"
-                     }
-                  }
-               ],
-               "Metadata":{
-                  "AWS::CloudFormation::Designer":{
-                     "id":"b341410b-d001-4e9f-bcc2-d4b22545586c"
-                  }
-               }
-            }
-         },
-         "NewVolume":{
-            "Type":"AWS::EC2::Volume",
-            "Properties":{
-               "Size":"100"
-            }
-         },
-         "Parameters":{
-            "KeyName":{
-               "Description":"Name of an existing EC2 KeyPair to enable SSH access to the instances",
-               "Type":"AWS::EC2::KeyPair::KeyName",
-               "ConstraintDescription":"must be the name of an existing EC2 KeyPair."
-            }
-         },
-         "Outputs":{
-            "InstanceID":{
-               "Description":"The Instance ID",
-               "Value":{
-                  "Ref":"EC2Instance"
-               }
-            }
-         }
+      "6e47b9d7-5cef-4afa-ace4-0448c13a5c45": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 240,
+          "y": 110
+        },
+        "z": 0,
+        "embeds": [
+
+        ],
+        "isconnectedto": [
+          "b341410b-d001-4e9f-bcc2-d4b22545586c"
+        ]
+      },
+      "9970780f-3963-4506-8157-f3bb4635d1f0": {
+        "source": {
+          "id": "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
+        },
+        "target": {
+          "id": "b341410b-d001-4e9f-bcc2-d4b22545586c"
+        },
+        "z": 1
+      },
+      "d53ebd66-7a40-4abe-8413-c76a0be72197": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 420,
+          "y": 30
+        },
+        "z": 0,
+        "embeds": [
+
+        ],
+        "dependson": [
+          "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
+        ],
+        "isrelatedto": [
+          "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
+        ]
+      },
+      "f702acfc-479c-4676-acba-f2895895e465": {
+        "source": {
+          "id": "d53ebd66-7a40-4abe-8413-c76a0be72197"
+        },
+        "target": {
+          "id": "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
+        },
+        "z": 11
       }
-   }
+    }
+  },
+  "Resources": {
+    "RC1U4LQ": {
+      "Type": "AWS::Route53::RecordSet",
+      "Properties": {
+        "ResourceRecords": [{
+          "Fn::GetAtt": [
+            "LoadBalancer",
+            "DNSName"
+          ]
+        }],
+        "HostedZoneId": "Z23WIQQ2267T87",
+        "Name": {
+          "Fn::Join": [
+            ".", [{
+                "Ref": "AWS::StackName"
+              },
+              "ellin.com"
+            ]
+          ]
+        },
+        "Type": "CNAME",
+        "TTL": "30"
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d53ebd66-7a40-4abe-8413-c76a0be72197"
+        }
+      },
+      "DependsOn": [
+        "LoadBalancer"
+      ]
+    },
+    "LoadBalancer": {
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+      "Properties": {
+        "Instances": [{
+          "Ref": "EC2Instance"
+        }],
+        "Listeners": [{
+          "InstancePort": "8081",
+          "InstanceProtocol": "HTTP",
+          "Protocol": "HTTPS",
+          "LoadBalancerPort": "443",
+          "SSLCertificateId": "arn:aws:iam::2345235:server-certificate/ellin"
+        }],
+        "Metadata": {
+          "AWS::CloudFormation::Designer": {
+            "id": "6e47b9d7-5cef-4afa-ace4-0448c13a5c45"
+          }
+        }
+      },
+      "EC2Instance": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+          "ImageId": "ami-5f709f34",
+          "KeyName": {
+            "Ref": "KeyName"
+          },
+          "InstanceType": "m4.4xlarge",
+          "SubnetId": "subnet-2342abec0f",
+          "SecurityGroupIds": [
+            "sg-bb8bb5dc"
+          ],
+          "Volumes": [{
+            "VolumeId": {
+              "Ref": "NewVolume"
+            },
+            "Device": "/dev/sda"
+          }],
+          "Tags": [{
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }],
+          "Metadata": {
+            "AWS::CloudFormation::Designer": {
+              "id": "b341410b-d001-4e9f-bcc2-d4b22545586c"
+            }
+          }
+        }
+      },
+      "NewVolume": {
+        "Type": "AWS::EC2::Volume",
+        "Properties": {
+          "Size": "100"
+        }
+      },
+      "Parameters": {
+        "KeyName": {
+          "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances",
+          "Type": "AWS::EC2::KeyPair::KeyName",
+          "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+        }
+      },
+      "Outputs": {
+        "InstanceID": {
+          "Description": "The Instance ID",
+          "Value": {
+            "Ref": "EC2Instance"
+          }
+        }
+      }
+    }
+  }
+}
