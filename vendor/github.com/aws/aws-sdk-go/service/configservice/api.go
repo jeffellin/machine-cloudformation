@@ -808,6 +808,8 @@ func (c *ConfigService) StopConfigurationRecorder(input *StopConfigurationRecord
 // Indicates whether an AWS resource or AWS Config rule is compliant and provides
 // the number of contributors that affect the compliance.
 type Compliance struct {
+	_ struct{} `type:"structure"`
+
 	// The number of AWS resources or AWS Config rules that cause a result of NON_COMPLIANT,
 	// up to a maximum of 25.
 	ComplianceContributorCount *ComplianceContributorCount `type:"structure"`
@@ -821,12 +823,6 @@ type Compliance struct {
 	// A rule is compliant if all of the resources that the rule evaluates comply
 	// with it, and it is noncompliant if any of these resources do not comply.
 	ComplianceType *string `type:"string" enum:"ComplianceType"`
-
-	metadataCompliance `json:"-" xml:"-"`
-}
-
-type metadataCompliance struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -843,17 +839,13 @@ func (s Compliance) GoString() string {
 // all of the resources that the rule evaluated comply with it, and it is noncompliant
 // if any of these resources do not comply.
 type ComplianceByConfigRule struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the AWS Config rule is compliant.
 	Compliance *Compliance `type:"structure"`
 
 	// The name of the AWS Config rule.
 	ConfigRuleName *string `min:"1" type:"string"`
-
-	metadataComplianceByConfigRule `json:"-" xml:"-"`
-}
-
-type metadataComplianceByConfigRule struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -871,6 +863,8 @@ func (s ComplianceByConfigRule) GoString() string {
 // all of the rules that evaluate it, and it is noncompliant if it does not
 // comply with one or more of these rules.
 type ComplianceByResource struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the AWS resource complies with all of the AWS Config rules
 	// that evaluated it.
 	Compliance *Compliance `type:"structure"`
@@ -880,12 +874,6 @@ type ComplianceByResource struct {
 
 	// The type of the AWS resource that was evaluated.
 	ResourceType *string `min:"1" type:"string"`
-
-	metadataComplianceByResource `json:"-" xml:"-"`
-}
-
-type metadataComplianceByResource struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -901,18 +889,14 @@ func (s ComplianceByResource) GoString() string {
 // The number of AWS resources or AWS Config rules responsible for the current
 // compliance of the item, up to a maximum number.
 type ComplianceContributorCount struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the maximum count is reached.
 	CapExceeded *bool `type:"boolean"`
 
 	// The number of AWS resources or AWS Config rules responsible for the current
 	// compliance of the item.
 	CappedCount *int64 `type:"integer"`
-
-	metadataComplianceContributorCount `json:"-" xml:"-"`
-}
-
-type metadataComplianceContributorCount struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -928,6 +912,8 @@ func (s ComplianceContributorCount) GoString() string {
 // The number of AWS Config rules or AWS resources that are compliant and noncompliant,
 // up to a maximum.
 type ComplianceSummary struct {
+	_ struct{} `type:"structure"`
+
 	// The time that AWS Config created the compliance summary.
 	ComplianceSummaryTimestamp *time.Time `type:"timestamp" timestampFormat:"unix"`
 
@@ -938,12 +924,6 @@ type ComplianceSummary struct {
 	// The number of AWS Config rules or AWS resources that are noncompliant, up
 	// to a maximum of 25 for rules and 100 for resources.
 	NonCompliantResourceCount *ComplianceContributorCount `type:"structure"`
-
-	metadataComplianceSummary `json:"-" xml:"-"`
-}
-
-type metadataComplianceSummary struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -959,18 +939,14 @@ func (s ComplianceSummary) GoString() string {
 // The number of AWS resources of a specific type that are compliant or noncompliant,
 // up to a maximum of 100 for each compliance.
 type ComplianceSummaryByResourceType struct {
+	_ struct{} `type:"structure"`
+
 	// The number of AWS resources that are compliant or noncompliant, up to a maximum
 	// of 100 for each compliance.
 	ComplianceSummary *ComplianceSummary `type:"structure"`
 
 	// The type of AWS resource.
 	ResourceType *string `min:"1" type:"string"`
-
-	metadataComplianceSummaryByResourceType `json:"-" xml:"-"`
-}
-
-type metadataComplianceSummaryByResourceType struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -986,6 +962,8 @@ func (s ComplianceSummaryByResourceType) GoString() string {
 // A list that contains the status of the delivery of either the snapshot or
 // the configuration history to the specified Amazon S3 bucket.
 type ConfigExportDeliveryInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The time of the last attempted delivery.
 	LastAttemptTime *time.Time `locationName:"lastAttemptTime" type:"timestamp" timestampFormat:"unix"`
 
@@ -1003,12 +981,6 @@ type ConfigExportDeliveryInfo struct {
 
 	// The time that the next delivery occurs.
 	NextDeliveryTime *time.Time `locationName:"nextDeliveryTime" type:"timestamp" timestampFormat:"unix"`
-
-	metadataConfigExportDeliveryInfo `json:"-" xml:"-"`
-}
-
-type metadataConfigExportDeliveryInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1031,6 +1003,8 @@ func (s ConfigExportDeliveryInfo) GoString() string {
 // AWS Resource Configurations with AWS Config (http://docs.aws.amazon.com/config/latest/developerguide/evaluate-config.html)
 // in the AWS Config Developer Guide.
 type ConfigRule struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the AWS Config rule.
 	ConfigRuleArn *string `type:"string"`
 
@@ -1080,12 +1054,6 @@ type ConfigRule struct {
 	// Provides the rule owner (AWS or customer), the rule identifier, and the events
 	// that cause the function to evaluate your AWS resources.
 	Source *Source `type:"structure" required:"true"`
-
-	metadataConfigRule `json:"-" xml:"-"`
-}
-
-type metadataConfigRule struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1105,6 +1073,8 @@ func (s ConfigRule) GoString() string {
 // This action does not return status information about customer managed Config
 // rules.
 type ConfigRuleEvaluationStatus struct {
+	_ struct{} `type:"structure"`
+
 	// The Amazon Resource Name (ARN) of the AWS Config rule.
 	ConfigRuleArn *string `type:"string"`
 
@@ -1117,25 +1087,35 @@ type ConfigRuleEvaluationStatus struct {
 	// The time that you first activated the AWS Config rule.
 	FirstActivatedTime *time.Time `type:"timestamp" timestampFormat:"unix"`
 
+	// Indicates whether AWS Config has evaluated your resources against the rule
+	// at least once.
+	//
+	//  true - AWS Config has evaluated your AWS resources against the rule at
+	// least once. false - AWS Config has not once finished evaluating your AWS
+	// resources against the rule.
+	FirstEvaluationStarted *bool `type:"boolean"`
+
 	// The error code that AWS Config returned when the rule last failed.
 	LastErrorCode *string `type:"string"`
 
 	// The error message that AWS Config returned when the rule last failed.
 	LastErrorMessage *string `type:"string"`
 
+	// The time that AWS Config last failed to evaluate your AWS resources against
+	// the rule.
+	LastFailedEvaluationTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+
 	// The time that AWS Config last failed to invoke the AWS Config rule to evaluate
 	// your AWS resources.
 	LastFailedInvocationTime *time.Time `type:"timestamp" timestampFormat:"unix"`
 
+	// The time that AWS Config last successfully evaluated your AWS resources against
+	// the rule.
+	LastSuccessfulEvaluationTime *time.Time `type:"timestamp" timestampFormat:"unix"`
+
 	// The time that AWS Config last successfully invoked the AWS Config rule to
 	// evaluate your AWS resources.
 	LastSuccessfulInvocationTime *time.Time `type:"timestamp" timestampFormat:"unix"`
-
-	metadataConfigRuleEvaluationStatus `json:"-" xml:"-"`
-}
-
-type metadataConfigRuleEvaluationStatus struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1151,15 +1131,11 @@ func (s ConfigRuleEvaluationStatus) GoString() string {
 // Options for how AWS Config delivers configuration snapshots to the Amazon
 // S3 bucket in your delivery channel.
 type ConfigSnapshotDeliveryProperties struct {
+	_ struct{} `type:"structure"`
+
 	// The frequency with which a AWS Config recurringly delivers configuration
 	// snapshots.
 	DeliveryFrequency *string `locationName:"deliveryFrequency" type:"string" enum:"MaximumExecutionFrequency"`
-
-	metadataConfigSnapshotDeliveryProperties `json:"-" xml:"-"`
-}
-
-type metadataConfigSnapshotDeliveryProperties struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1175,6 +1151,8 @@ func (s ConfigSnapshotDeliveryProperties) GoString() string {
 // A list that contains the status of the delivery of the configuration stream
 // notification to the Amazon SNS topic.
 type ConfigStreamDeliveryInfo struct {
+	_ struct{} `type:"structure"`
+
 	// The error code from the last attempted delivery.
 	LastErrorCode *string `locationName:"lastErrorCode" type:"string"`
 
@@ -1190,12 +1168,6 @@ type ConfigStreamDeliveryInfo struct {
 
 	// The time from the last status change.
 	LastStatusChangeTime *time.Time `locationName:"lastStatusChangeTime" type:"timestamp" timestampFormat:"unix"`
-
-	metadataConfigStreamDeliveryInfo `json:"-" xml:"-"`
-}
-
-type metadataConfigStreamDeliveryInfo struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1213,6 +1185,8 @@ func (s ConfigStreamDeliveryInfo) GoString() string {
 //  Currently, the list does not contain information about non-AWS components
 // (for example, applications on your Amazon EC2 instances).
 type ConfigurationItem struct {
+	_ struct{} `type:"structure"`
+
 	// The 12 digit AWS account ID associated with the resource.
 	AccountId *string `locationName:"accountId" type:"string"`
 
@@ -1274,12 +1248,6 @@ type ConfigurationItem struct {
 
 	// The version number of the resource configuration.
 	Version *string `locationName:"version" type:"string"`
-
-	metadataConfigurationItem `json:"-" xml:"-"`
-}
-
-type metadataConfigurationItem struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1295,25 +1263,20 @@ func (s ConfigurationItem) GoString() string {
 // An object that represents the recording of configuration changes of an AWS
 // resource.
 type ConfigurationRecorder struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the recorder. By default, AWS Config automatically assigns the
 	// name "default" when creating the configuration recorder. You cannot change
 	// the assigned name.
 	Name *string `locationName:"name" min:"1" type:"string"`
 
-	// The recording group specifies either to record configurations for all supported
-	// resources or to provide a list of resource types to record. The list of resource
-	// types must be a subset of supported resource types.
+	// Specifies the types of AWS resource for which AWS Config records configuration
+	// changes.
 	RecordingGroup *RecordingGroup `locationName:"recordingGroup" type:"structure"`
 
 	// Amazon Resource Name (ARN) of the IAM role used to describe the AWS resources
 	// associated with the account.
 	RoleARN *string `locationName:"roleARN" type:"string"`
-
-	metadataConfigurationRecorder `json:"-" xml:"-"`
-}
-
-type metadataConfigurationRecorder struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1328,6 +1291,8 @@ func (s ConfigurationRecorder) GoString() string {
 
 // The current status of the configuration recorder.
 type ConfigurationRecorderStatus struct {
+	_ struct{} `type:"structure"`
+
 	// The error code indicating that the recording failed.
 	LastErrorCode *string `locationName:"lastErrorCode" type:"string"`
 
@@ -1351,12 +1316,6 @@ type ConfigurationRecorderStatus struct {
 
 	// Specifies whether the recorder is currently recording or not.
 	Recording *bool `locationName:"recording" type:"boolean"`
-
-	metadataConfigurationRecorderStatus `json:"-" xml:"-"`
-}
-
-type metadataConfigurationRecorderStatus struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1370,14 +1329,10 @@ func (s ConfigurationRecorderStatus) GoString() string {
 }
 
 type DeleteConfigRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the AWS Config rule that you want to delete.
 	ConfigRuleName *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteConfigRuleInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteConfigRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1391,11 +1346,7 @@ func (s DeleteConfigRuleInput) GoString() string {
 }
 
 type DeleteConfigRuleOutput struct {
-	metadataDeleteConfigRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteConfigRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1411,14 +1362,10 @@ func (s DeleteConfigRuleOutput) GoString() string {
 // The input for the DeleteDeliveryChannel action. The action accepts the following
 // data in JSON format.
 type DeleteDeliveryChannelInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the delivery channel to delete.
 	DeliveryChannelName *string `min:"1" type:"string" required:"true"`
-
-	metadataDeleteDeliveryChannelInput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDeliveryChannelInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1432,11 +1379,7 @@ func (s DeleteDeliveryChannelInput) GoString() string {
 }
 
 type DeleteDeliveryChannelOutput struct {
-	metadataDeleteDeliveryChannelOutput `json:"-" xml:"-"`
-}
-
-type metadataDeleteDeliveryChannelOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -1451,14 +1394,10 @@ func (s DeleteDeliveryChannelOutput) GoString() string {
 
 // The input for the DeliverConfigSnapshot action.
 type DeliverConfigSnapshotInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the delivery channel through which the snapshot is delivered.
 	DeliveryChannelName *string `locationName:"deliveryChannelName" min:"1" type:"string" required:"true"`
-
-	metadataDeliverConfigSnapshotInput `json:"-" xml:"-"`
-}
-
-type metadataDeliverConfigSnapshotInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1473,14 +1412,10 @@ func (s DeliverConfigSnapshotInput) GoString() string {
 
 // The output for the DeliverConfigSnapshot action in JSON format.
 type DeliverConfigSnapshotOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The ID of the snapshot that is being created.
 	ConfigSnapshotId *string `locationName:"configSnapshotId" type:"string"`
-
-	metadataDeliverConfigSnapshotOutput `json:"-" xml:"-"`
-}
-
-type metadataDeliverConfigSnapshotOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1496,6 +1431,8 @@ func (s DeliverConfigSnapshotOutput) GoString() string {
 // A logical container used for storing the configuration changes of an AWS
 // resource.
 type DeliveryChannel struct {
+	_ struct{} `type:"structure"`
+
 	// Options for how AWS Config delivers configuration snapshots to the Amazon
 	// S3 bucket in your delivery channel.
 	ConfigSnapshotDeliveryProperties *ConfigSnapshotDeliveryProperties `locationName:"configSnapshotDeliveryProperties" type:"structure"`
@@ -1515,12 +1452,6 @@ type DeliveryChannel struct {
 	// The Amazon Resource Name (ARN) of the SNS topic that AWS Config delivers
 	// notifications to.
 	SnsTopicARN *string `locationName:"snsTopicARN" type:"string"`
-
-	metadataDeliveryChannel `json:"-" xml:"-"`
-}
-
-type metadataDeliveryChannel struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1537,6 +1468,8 @@ func (s DeliveryChannel) GoString() string {
 //
 // Valid values: Success | Failure
 type DeliveryChannelStatus struct {
+	_ struct{} `type:"structure"`
+
 	// A list that contains the status of the delivery of the configuration history
 	// to the specified Amazon S3 bucket.
 	ConfigHistoryDeliveryInfo *ConfigExportDeliveryInfo `locationName:"configHistoryDeliveryInfo" type:"structure"`
@@ -1551,12 +1484,6 @@ type DeliveryChannelStatus struct {
 
 	// The name of the delivery channel.
 	Name *string `locationName:"name" type:"string"`
-
-	metadataDeliveryChannelStatus `json:"-" xml:"-"`
-}
-
-type metadataDeliveryChannelStatus struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1570,6 +1497,8 @@ func (s DeliveryChannelStatus) GoString() string {
 }
 
 type DescribeComplianceByConfigRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// Filters the results by compliance. The valid values are Compliant and NonCompliant.
 	ComplianceTypes []*string `type:"list"`
 
@@ -1579,12 +1508,6 @@ type DescribeComplianceByConfigRuleInput struct {
 	// The nextToken string returned on a previous page that you use to get the
 	// next page of results in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataDescribeComplianceByConfigRuleInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeComplianceByConfigRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1598,18 +1521,14 @@ func (s DescribeComplianceByConfigRuleInput) GoString() string {
 }
 
 type DescribeComplianceByConfigRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether each of the specified AWS Config rules is compliant.
 	ComplianceByConfigRules []*ComplianceByConfigRule `type:"list"`
 
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataDescribeComplianceByConfigRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeComplianceByConfigRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1623,6 +1542,8 @@ func (s DescribeComplianceByConfigRuleOutput) GoString() string {
 }
 
 type DescribeComplianceByResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// Filters the results by compliance. The valid values are Compliant and NonCompliant.
 	ComplianceTypes []*string `type:"list"`
 
@@ -1644,12 +1565,6 @@ type DescribeComplianceByResourceInput struct {
 	// example, AWS::EC2::Instance. For this action, you can specify that the resource
 	// type is an AWS account by specifying AWS::::Account.
 	ResourceType *string `min:"1" type:"string"`
-
-	metadataDescribeComplianceByResourceInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeComplianceByResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1663,6 +1578,8 @@ func (s DescribeComplianceByResourceInput) GoString() string {
 }
 
 type DescribeComplianceByResourceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the specified AWS resource complies with all of the AWS
 	// Config rules that evaluate it.
 	ComplianceByResources []*ComplianceByResource `type:"list"`
@@ -1670,12 +1587,6 @@ type DescribeComplianceByResourceOutput struct {
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataDescribeComplianceByResourceOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeComplianceByResourceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1689,16 +1600,12 @@ func (s DescribeComplianceByResourceOutput) GoString() string {
 }
 
 type DescribeConfigRuleEvaluationStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the AWS managed Config rules for which you want status information.
 	// If you do not specify any names, AWS Config returns status information for
 	// all AWS managed Config rules that you use.
 	ConfigRuleNames []*string `type:"list"`
-
-	metadataDescribeConfigRuleEvaluationStatusInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigRuleEvaluationStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1712,14 +1619,10 @@ func (s DescribeConfigRuleEvaluationStatusInput) GoString() string {
 }
 
 type DescribeConfigRuleEvaluationStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Status information about your AWS managed Config rules.
 	ConfigRulesEvaluationStatus []*ConfigRuleEvaluationStatus `type:"list"`
-
-	metadataDescribeConfigRuleEvaluationStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigRuleEvaluationStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1733,6 +1636,8 @@ func (s DescribeConfigRuleEvaluationStatusOutput) GoString() string {
 }
 
 type DescribeConfigRulesInput struct {
+	_ struct{} `type:"structure"`
+
 	// The names of the AWS Config rules for which you want details. If you do not
 	// specify any names, AWS Config returns details for all your rules.
 	ConfigRuleNames []*string `type:"list"`
@@ -1740,12 +1645,6 @@ type DescribeConfigRulesInput struct {
 	// The nextToken string returned on a previous page that you use to get the
 	// next page of results in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataDescribeConfigRulesInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigRulesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1759,18 +1658,14 @@ func (s DescribeConfigRulesInput) GoString() string {
 }
 
 type DescribeConfigRulesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The details about your AWS Config rules.
 	ConfigRules []*ConfigRule `type:"list"`
 
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataDescribeConfigRulesOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigRulesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1785,16 +1680,12 @@ func (s DescribeConfigRulesOutput) GoString() string {
 
 // The input for the DescribeConfigurationRecorderStatus action.
 type DescribeConfigurationRecorderStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name(s) of the configuration recorder. If the name is not specified,
 	// the action returns the current status of all the configuration recorders
 	// associated with the account.
 	ConfigurationRecorderNames []*string `type:"list"`
-
-	metadataDescribeConfigurationRecorderStatusInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigurationRecorderStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1809,14 +1700,10 @@ func (s DescribeConfigurationRecorderStatusInput) GoString() string {
 
 // The output for the DescribeConfigurationRecorderStatus action in JSON format.
 type DescribeConfigurationRecorderStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list that contains status of the specified recorders.
 	ConfigurationRecordersStatus []*ConfigurationRecorderStatus `type:"list"`
-
-	metadataDescribeConfigurationRecorderStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigurationRecorderStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1831,14 +1718,10 @@ func (s DescribeConfigurationRecorderStatusOutput) GoString() string {
 
 // The input for the DescribeConfigurationRecorders action.
 type DescribeConfigurationRecordersInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of configuration recorder names.
 	ConfigurationRecorderNames []*string `type:"list"`
-
-	metadataDescribeConfigurationRecordersInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigurationRecordersInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1853,14 +1736,10 @@ func (s DescribeConfigurationRecordersInput) GoString() string {
 
 // The output for the DescribeConfigurationRecorders action.
 type DescribeConfigurationRecordersOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list that contains the descriptions of the specified configuration recorders.
 	ConfigurationRecorders []*ConfigurationRecorder `type:"list"`
-
-	metadataDescribeConfigurationRecordersOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeConfigurationRecordersOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1875,14 +1754,10 @@ func (s DescribeConfigurationRecordersOutput) GoString() string {
 
 // The input for the DeliveryChannelStatus action.
 type DescribeDeliveryChannelStatusInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of delivery channel names.
 	DeliveryChannelNames []*string `type:"list"`
-
-	metadataDescribeDeliveryChannelStatusInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeDeliveryChannelStatusInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1897,14 +1772,10 @@ func (s DescribeDeliveryChannelStatusInput) GoString() string {
 
 // The output for the DescribeDeliveryChannelStatus action.
 type DescribeDeliveryChannelStatusOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list that contains the status of a specified delivery channel.
 	DeliveryChannelsStatus []*DeliveryChannelStatus `type:"list"`
-
-	metadataDescribeDeliveryChannelStatusOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeDeliveryChannelStatusOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1919,14 +1790,10 @@ func (s DescribeDeliveryChannelStatusOutput) GoString() string {
 
 // The input for the DescribeDeliveryChannels action.
 type DescribeDeliveryChannelsInput struct {
+	_ struct{} `type:"structure"`
+
 	// A list of delivery channel names.
 	DeliveryChannelNames []*string `type:"list"`
-
-	metadataDescribeDeliveryChannelsInput `json:"-" xml:"-"`
-}
-
-type metadataDescribeDeliveryChannelsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1941,14 +1808,10 @@ func (s DescribeDeliveryChannelsInput) GoString() string {
 
 // The output for the DescribeDeliveryChannels action.
 type DescribeDeliveryChannelsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list that contains the descriptions of the specified delivery channel.
 	DeliveryChannels []*DeliveryChannel `type:"list"`
-
-	metadataDescribeDeliveryChannelsOutput `json:"-" xml:"-"`
-}
-
-type metadataDescribeDeliveryChannelsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -1964,6 +1827,8 @@ func (s DescribeDeliveryChannelsOutput) GoString() string {
 // Identifies an AWS resource and indicates whether it complies with the AWS
 // Config rule that it was evaluated against.
 type Evaluation struct {
+	_ struct{} `type:"structure"`
+
 	// Supplementary information about how the evaluation determined the compliance.
 	Annotation *string `min:"1" type:"string"`
 
@@ -1982,12 +1847,6 @@ type Evaluation struct {
 	// item that triggered the evaluation. For periodic evaluations, the time indicates
 	// when AWS Config delivered the configuration snapshot that triggered the evaluation.
 	OrderingTimestamp *time.Time `type:"timestamp" timestampFormat:"unix" required:"true"`
-
-	metadataEvaluation `json:"-" xml:"-"`
-}
-
-type metadataEvaluation struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2004,6 +1863,8 @@ func (s Evaluation) GoString() string {
 // evaluated, the compliance of the resource, related timestamps, and supplementary
 // information.
 type EvaluationResult struct {
+	_ struct{} `type:"structure"`
+
 	// Supplementary information about how the evaluation determined the compliance.
 	Annotation *string `min:"1" type:"string"`
 
@@ -2024,12 +1885,6 @@ type EvaluationResult struct {
 	// The token identifies the rule, the AWS resource being evaluated, and the
 	// event that triggered the evaluation.
 	ResultToken *string `type:"string"`
-
-	metadataEvaluationResult `json:"-" xml:"-"`
-}
-
-type metadataEvaluationResult struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2044,6 +1899,8 @@ func (s EvaluationResult) GoString() string {
 
 // Uniquely identifies an evaluation result.
 type EvaluationResultIdentifier struct {
+	_ struct{} `type:"structure"`
+
 	// Identifies an AWS Config rule used to evaluate an AWS resource, and provides
 	// the type and ID of the evaluated resource.
 	EvaluationResultQualifier *EvaluationResultQualifier `type:"structure"`
@@ -2053,12 +1910,6 @@ type EvaluationResultIdentifier struct {
 	// notification, or it can indicate when AWS Config delivered the configuration
 	// snapshot, depending on which event triggered the evaluation.
 	OrderingTimestamp *time.Time `type:"timestamp" timestampFormat:"unix"`
-
-	metadataEvaluationResultIdentifier `json:"-" xml:"-"`
-}
-
-type metadataEvaluationResultIdentifier struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2074,6 +1925,8 @@ func (s EvaluationResultIdentifier) GoString() string {
 // Identifies an AWS Config rule that evaluated an AWS resource, and provides
 // the type and ID of the resource that the rule evaluated.
 type EvaluationResultQualifier struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the AWS Config rule that was used in the evaluation.
 	ConfigRuleName *string `min:"1" type:"string"`
 
@@ -2082,12 +1935,6 @@ type EvaluationResultQualifier struct {
 
 	// The type of AWS resource that was evaluated.
 	ResourceType *string `min:"1" type:"string"`
-
-	metadataEvaluationResultQualifier `json:"-" xml:"-"`
-}
-
-type metadataEvaluationResultQualifier struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2101,6 +1948,8 @@ func (s EvaluationResultQualifier) GoString() string {
 }
 
 type GetComplianceDetailsByConfigRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specify to filter the results by compliance. The valid values are Compliant,
 	// NonCompliant, and NotApplicable.
 	ComplianceTypes []*string `type:"list"`
@@ -2116,12 +1965,6 @@ type GetComplianceDetailsByConfigRuleInput struct {
 	// The nextToken string returned on a previous page that you use to get the
 	// next page of results in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataGetComplianceDetailsByConfigRuleInput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceDetailsByConfigRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2135,6 +1978,8 @@ func (s GetComplianceDetailsByConfigRuleInput) GoString() string {
 }
 
 type GetComplianceDetailsByConfigRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the AWS resource complies with the specified AWS Config
 	// rule.
 	EvaluationResults []*EvaluationResult `type:"list"`
@@ -2142,12 +1987,6 @@ type GetComplianceDetailsByConfigRuleOutput struct {
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataGetComplianceDetailsByConfigRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceDetailsByConfigRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2161,6 +2000,8 @@ func (s GetComplianceDetailsByConfigRuleOutput) GoString() string {
 }
 
 type GetComplianceDetailsByResourceInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specify to filter the results by compliance. The valid values are Compliant,
 	// NonCompliant, and NotApplicable.
 	ComplianceTypes []*string `type:"list"`
@@ -2174,12 +2015,6 @@ type GetComplianceDetailsByResourceInput struct {
 
 	// The type of the AWS resource for which you want compliance information.
 	ResourceType *string `min:"1" type:"string" required:"true"`
-
-	metadataGetComplianceDetailsByResourceInput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceDetailsByResourceInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2193,18 +2028,14 @@ func (s GetComplianceDetailsByResourceInput) GoString() string {
 }
 
 type GetComplianceDetailsByResourceOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether the specified AWS resource complies each AWS Config rule.
 	EvaluationResults []*EvaluationResult `type:"list"`
 
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `type:"string"`
-
-	metadataGetComplianceDetailsByResourceOutput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceDetailsByResourceOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2218,11 +2049,7 @@ func (s GetComplianceDetailsByResourceOutput) GoString() string {
 }
 
 type GetComplianceSummaryByConfigRuleInput struct {
-	metadataGetComplianceSummaryByConfigRuleInput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceSummaryByConfigRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2236,15 +2063,11 @@ func (s GetComplianceSummaryByConfigRuleInput) GoString() string {
 }
 
 type GetComplianceSummaryByConfigRuleOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The number of AWS Config rules that are compliant and the number that are
 	// noncompliant, up to a maximum of 25 for each.
 	ComplianceSummary *ComplianceSummary `type:"structure"`
-
-	metadataGetComplianceSummaryByConfigRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceSummaryByConfigRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2258,6 +2081,8 @@ func (s GetComplianceSummaryByConfigRuleOutput) GoString() string {
 }
 
 type GetComplianceSummaryByResourceTypeInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specify one or more resource types to get the number of resources that are
 	// compliant and the number that are noncompliant for each resource type.
 	//
@@ -2265,12 +2090,6 @@ type GetComplianceSummaryByResourceTypeInput struct {
 	// and you can specify that the resource type is an AWS account by specifying
 	// AWS::::Account.
 	ResourceTypes []*string `type:"list"`
-
-	metadataGetComplianceSummaryByResourceTypeInput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceSummaryByResourceTypeInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2284,16 +2103,12 @@ func (s GetComplianceSummaryByResourceTypeInput) GoString() string {
 }
 
 type GetComplianceSummaryByResourceTypeOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The number of resources that are compliant and the number that are noncompliant.
 	// If one or more resource types were provided with the request, the numbers
 	// are returned for each resource type. The maximum number returned is 100.
 	ComplianceSummariesByResourceType []*ComplianceSummaryByResourceType `type:"list"`
-
-	metadataGetComplianceSummaryByResourceTypeOutput `json:"-" xml:"-"`
-}
-
-type metadataGetComplianceSummaryByResourceTypeOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2308,6 +2123,8 @@ func (s GetComplianceSummaryByResourceTypeOutput) GoString() string {
 
 // The input for the GetResourceConfigHistory action.
 type GetResourceConfigHistoryInput struct {
+	_ struct{} `type:"structure"`
+
 	// The chronological order for configuration items listed. By default the results
 	// are listed in reverse chronological order.
 	ChronologicalOrder *string `locationName:"chronologicalOrder" type:"string" enum:"ChronologicalOrder"`
@@ -2335,12 +2152,6 @@ type GetResourceConfigHistoryInput struct {
 
 	// The resource type.
 	ResourceType *string `locationName:"resourceType" type:"string" required:"true" enum:"ResourceType"`
-
-	metadataGetResourceConfigHistoryInput `json:"-" xml:"-"`
-}
-
-type metadataGetResourceConfigHistoryInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2355,18 +2166,14 @@ func (s GetResourceConfigHistoryInput) GoString() string {
 
 // The output for the GetResourceConfigHistory action.
 type GetResourceConfigHistoryOutput struct {
+	_ struct{} `type:"structure"`
+
 	// A list that contains the configuration history of one or more resources.
 	ConfigurationItems []*ConfigurationItem `locationName:"configurationItems" type:"list"`
 
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `locationName:"nextToken" type:"string"`
-
-	metadataGetResourceConfigHistoryOutput `json:"-" xml:"-"`
-}
-
-type metadataGetResourceConfigHistoryOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2380,6 +2187,8 @@ func (s GetResourceConfigHistoryOutput) GoString() string {
 }
 
 type ListDiscoveredResourcesInput struct {
+	_ struct{} `type:"structure"`
+
 	// Specifies whether AWS Config includes deleted resources in the results. By
 	// default, deleted resources are not included.
 	IncludeDeletedResources *bool `locationName:"includeDeletedResources" type:"boolean"`
@@ -2405,12 +2214,6 @@ type ListDiscoveredResourcesInput struct {
 
 	// The type of resources that you want AWS Config to list in the response.
 	ResourceType *string `locationName:"resourceType" type:"string" required:"true" enum:"ResourceType"`
-
-	metadataListDiscoveredResourcesInput `json:"-" xml:"-"`
-}
-
-type metadataListDiscoveredResourcesInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2424,6 +2227,8 @@ func (s ListDiscoveredResourcesInput) GoString() string {
 }
 
 type ListDiscoveredResourcesOutput struct {
+	_ struct{} `type:"structure"`
+
 	// The string that you use in a subsequent request to get the next page of results
 	// in a paginated response.
 	NextToken *string `locationName:"nextToken" type:"string"`
@@ -2431,12 +2236,6 @@ type ListDiscoveredResourcesOutput struct {
 	// The details that identify a resource that is discovered by AWS Config, including
 	// the resource type, ID, and (if available) the custom resource name.
 	ResourceIdentifiers []*ResourceIdentifier `locationName:"resourceIdentifiers" type:"list"`
-
-	metadataListDiscoveredResourcesOutput `json:"-" xml:"-"`
-}
-
-type metadataListDiscoveredResourcesOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2450,6 +2249,8 @@ func (s ListDiscoveredResourcesOutput) GoString() string {
 }
 
 type PutConfigRuleInput struct {
+	_ struct{} `type:"structure"`
+
 	// An AWS Lambda function that evaluates configuration items to assess whether
 	// your AWS resources comply with your desired configurations. This function
 	// can run when AWS Config detects a configuration change or delivers a configuration
@@ -2460,12 +2261,6 @@ type PutConfigRuleInput struct {
 	// AWS Resource Configurations with AWS Config (http://docs.aws.amazon.com/config/latest/developerguide/evaluate-config.html)
 	// in the AWS Config Developer Guide.
 	ConfigRule *ConfigRule `type:"structure" required:"true"`
-
-	metadataPutConfigRuleInput `json:"-" xml:"-"`
-}
-
-type metadataPutConfigRuleInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2479,11 +2274,7 @@ func (s PutConfigRuleInput) GoString() string {
 }
 
 type PutConfigRuleOutput struct {
-	metadataPutConfigRuleOutput `json:"-" xml:"-"`
-}
-
-type metadataPutConfigRuleOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2498,15 +2289,11 @@ func (s PutConfigRuleOutput) GoString() string {
 
 // The input for the PutConfigurationRecorder action.
 type PutConfigurationRecorderInput struct {
+	_ struct{} `type:"structure"`
+
 	// The configuration recorder object that records each configuration change
 	// made to the resources.
 	ConfigurationRecorder *ConfigurationRecorder `type:"structure" required:"true"`
-
-	metadataPutConfigurationRecorderInput `json:"-" xml:"-"`
-}
-
-type metadataPutConfigurationRecorderInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2520,11 +2307,7 @@ func (s PutConfigurationRecorderInput) GoString() string {
 }
 
 type PutConfigurationRecorderOutput struct {
-	metadataPutConfigurationRecorderOutput `json:"-" xml:"-"`
-}
-
-type metadataPutConfigurationRecorderOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2539,15 +2322,11 @@ func (s PutConfigurationRecorderOutput) GoString() string {
 
 // The input for the PutDeliveryChannel action.
 type PutDeliveryChannelInput struct {
+	_ struct{} `type:"structure"`
+
 	// The configuration delivery channel object that delivers the configuration
 	// information to an Amazon S3 bucket, and to an Amazon SNS topic.
 	DeliveryChannel *DeliveryChannel `type:"structure" required:"true"`
-
-	metadataPutDeliveryChannelInput `json:"-" xml:"-"`
-}
-
-type metadataPutDeliveryChannelInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2561,11 +2340,7 @@ func (s PutDeliveryChannelInput) GoString() string {
 }
 
 type PutDeliveryChannelOutput struct {
-	metadataPutDeliveryChannelOutput `json:"-" xml:"-"`
-}
-
-type metadataPutDeliveryChannelOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2579,6 +2354,8 @@ func (s PutDeliveryChannelOutput) GoString() string {
 }
 
 type PutEvaluationsInput struct {
+	_ struct{} `type:"structure"`
+
 	// The assessments that the AWS Lambda function performs. Each evaluation identifies
 	// an AWS resource and indicates whether it complies with the AWS Config rule
 	// that invokes the AWS Lambda function.
@@ -2587,12 +2364,6 @@ type PutEvaluationsInput struct {
 	// An encrypted token that associates an evaluation with an AWS Config rule.
 	// Identifies the rule and the event that triggered the evaluation
 	ResultToken *string `type:"string" required:"true"`
-
-	metadataPutEvaluationsInput `json:"-" xml:"-"`
-}
-
-type metadataPutEvaluationsInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2606,14 +2377,10 @@ func (s PutEvaluationsInput) GoString() string {
 }
 
 type PutEvaluationsOutput struct {
+	_ struct{} `type:"structure"`
+
 	// Requests that failed because of a client or server error.
 	FailedEvaluations []*Evaluation `type:"list"`
-
-	metadataPutEvaluationsOutput `json:"-" xml:"-"`
-}
-
-type metadataPutEvaluationsOutput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2626,29 +2393,72 @@ func (s PutEvaluationsOutput) GoString() string {
 	return s.String()
 }
 
-// The group of AWS resource types that AWS Config records when starting the
-// configuration recorder.
+// Specifies the types of AWS resource for which AWS Config records configuration
+// changes.
 //
-// recordingGroup can have one and only one parameter. Choose either allSupported
-// or resourceTypes.
+// In the recording group, you specify whether all supported types or specific
+// types of resources are recorded.
+//
+// By default, AWS Config records configuration changes for all supported types
+// of regional resources that AWS Config discovers in the region in which it
+// is running. Regional resources are tied to a region and can be used only
+// in that region. Examples of regional resources are EC2 instances and EBS
+// volumes.
+//
+// You can also have AWS Config record configuration changes for supported
+// types of global resources. Global resources are not tied to an individual
+// region and can be used in all regions.
+//
+// The configuration details for any global resource are the same in all regions.
+// If you customize AWS Config in multiple regions to record global resources,
+// it will create multiple configuration items each time a global resource changes:
+// one configuration item for each region. These configuration items will contain
+// identical data. To prevent duplicate configuration items, you should consider
+// customizing AWS Config in only one region to record global resources, unless
+// you want the configuration items to be available in multiple regions. If
+// you don't want AWS Config to record all resources, you can specify which
+// types of resources it will record with the resourceTypes parameter.
+//
+// For a list of supported resource types, see Supported resource types (http://docs.aws.amazon.com/config/latest/developerguide/resource-config-reference.html#supported-resources).
+//
+// For more information, see Selecting Which Resources AWS Config Records (http://docs.aws.amazon.com/config/latest/developerguide/select-resources.html).
 type RecordingGroup struct {
-	// Records all supported resource types in the recording group. For a list of
-	// supported resource types, see Supported resource types (http://docs.aws.amazon.com/config/latest/developerguide/resource-config-reference.html#supported-resources).
-	// If you specify allSupported, you cannot enumerate a list of resourceTypes.
+	_ struct{} `type:"structure"`
+
+	// Specifies whether AWS Config records configuration changes for every supported
+	// type of regional resource.
+	//
+	// If you set this option to true, when AWS Config adds support for a new type
+	// of regional resource, it automatically starts recording resources of that
+	// type.
+	//
+	// If you set this option to true, you cannot enumerate a list of resourceTypes.
 	AllSupported *bool `locationName:"allSupported" type:"boolean"`
 
-	// A comma-separated list of strings representing valid AWS resource types (for
-	// example, AWS::EC2::Instance or AWS::CloudTrail::Trail). resourceTypes is
-	// only valid if you have chosen not to select allSupported. For a list of valid
-	// resourceTypes values, see the resourceType Value column in the following
-	// topic: Supported AWS Resource Types (http://docs.aws.amazon.com/config/latest/developerguide/resource-config-reference.html#supported-resources).
+	// Specifies whether AWS Config includes all supported types of global resources
+	// with the resources that it records.
+	//
+	// Before you can set this option to true, you must set the allSupported option
+	// to true.
+	//
+	// If you set this option to true, when AWS Config adds support for a new type
+	// of global resource, it automatically starts recording resources of that type.
+	IncludeGlobalResourceTypes *bool `locationName:"includeGlobalResourceTypes" type:"boolean"`
+
+	// A comma-separated list that specifies the types of AWS resources for which
+	// AWS Config records configuration changes (for example, AWS::EC2::Instance
+	// or AWS::CloudTrail::Trail).
+	//
+	// Before you can set this option to true, you must set the allSupported option
+	// to false.
+	//
+	// If you set this option to true, when AWS Config adds support for a new type
+	// of resource, it will not record resources of that type unless you manually
+	// add that type to your recording group.
+	//
+	// For a list of valid resourceTypes values, see the resourceType Value column
+	// in Supported AWS Resource Types (http://docs.aws.amazon.com/config/latest/developerguide/resource-config-reference.html#supported-resources).
 	ResourceTypes []*string `locationName:"resourceTypes" type:"list"`
-
-	metadataRecordingGroup `json:"-" xml:"-"`
-}
-
-type metadataRecordingGroup struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2663,6 +2473,8 @@ func (s RecordingGroup) GoString() string {
 
 // The relationship of the related resource to the main resource.
 type Relationship struct {
+	_ struct{} `type:"structure"`
+
 	// The type of relationship with the related resource.
 	RelationshipName *string `locationName:"relationshipName" type:"string"`
 
@@ -2674,12 +2486,6 @@ type Relationship struct {
 
 	// The resource type of the related resource.
 	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
-
-	metadataRelationship `json:"-" xml:"-"`
-}
-
-type metadataRelationship struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2695,6 +2501,8 @@ func (s Relationship) GoString() string {
 // The details that identify a resource that is discovered by AWS Config, including
 // the resource type, ID, and (if available) the custom resource name.
 type ResourceIdentifier struct {
+	_ struct{} `type:"structure"`
+
 	// The time that the resource was deleted.
 	ResourceDeletionTime *time.Time `locationName:"resourceDeletionTime" type:"timestamp" timestampFormat:"unix"`
 
@@ -2706,12 +2514,6 @@ type ResourceIdentifier struct {
 
 	// The type of resource.
 	ResourceType *string `locationName:"resourceType" type:"string" enum:"ResourceType"`
-
-	metadataResourceIdentifier `json:"-" xml:"-"`
-}
-
-type metadataResourceIdentifier struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2731,6 +2533,8 @@ func (s ResourceIdentifier) GoString() string {
 // a scope, all resources in your recording group are evaluated against the
 // rule.
 type Scope struct {
+	_ struct{} `type:"structure"`
+
 	// The IDs of only those AWS resources that you want AWS Config to evaluate
 	// against the rule. If you specify a resource ID, you must specify one resource
 	// type for ComplianceResourceTypes.
@@ -2749,12 +2553,6 @@ type Scope struct {
 	// to evaluate against the rule. If you specify a value for TagValue, you must
 	// also specify a value for TagKey.
 	TagValue *string `min:"1" type:"string"`
-
-	metadataScope `json:"-" xml:"-"`
-}
-
-type metadataScope struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2770,6 +2568,8 @@ func (s Scope) GoString() string {
 // Provides the AWS Config rule owner (AWS or customer), the rule identifier,
 // and the events that trigger the evaluation of your AWS resources.
 type Source struct {
+	_ struct{} `type:"structure"`
+
 	// Indicates whether AWS or the customer owns and manages the AWS Config rule.
 	Owner *string `type:"string" enum:"Owner"`
 
@@ -2783,12 +2583,6 @@ type Source struct {
 	// For customer managed Config rules, the identifier is the Amazon Resource
 	// Name (ARN) of the rule's AWS Lambda function.
 	SourceIdentifier *string `min:"1" type:"string"`
-
-	metadataSource `json:"-" xml:"-"`
-}
-
-type metadataSource struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2804,6 +2598,8 @@ func (s Source) GoString() string {
 // Provides the source and type of the event that triggers AWS Config to evaluate
 // your AWS resources against a rule.
 type SourceDetail struct {
+	_ struct{} `type:"structure"`
+
 	// The source of the event, such as an AWS service, that triggers AWS Config
 	// to evaluate your AWS resources.
 	EventSource *string `type:"string" enum:"EventSource"`
@@ -2814,12 +2610,6 @@ type SourceDetail struct {
 	// evaluations that are initiated when AWS Config delivers a configuration snapshot,
 	// you must use ConfigurationSnapshotDeliveryCompleted.
 	MessageType *string `type:"string" enum:"MessageType"`
-
-	metadataSourceDetail `json:"-" xml:"-"`
-}
-
-type metadataSourceDetail struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2834,15 +2624,11 @@ func (s SourceDetail) GoString() string {
 
 // The input for the StartConfigurationRecorder action.
 type StartConfigurationRecorderInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the recorder object that records each configuration change made
 	// to the resources.
 	ConfigurationRecorderName *string `min:"1" type:"string" required:"true"`
-
-	metadataStartConfigurationRecorderInput `json:"-" xml:"-"`
-}
-
-type metadataStartConfigurationRecorderInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2856,11 +2642,7 @@ func (s StartConfigurationRecorderInput) GoString() string {
 }
 
 type StartConfigurationRecorderOutput struct {
-	metadataStartConfigurationRecorderOutput `json:"-" xml:"-"`
-}
-
-type metadataStartConfigurationRecorderOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -2875,15 +2657,11 @@ func (s StartConfigurationRecorderOutput) GoString() string {
 
 // The input for the StopConfigurationRecorder action.
 type StopConfigurationRecorderInput struct {
+	_ struct{} `type:"structure"`
+
 	// The name of the recorder object that records each configuration change made
 	// to the resources.
 	ConfigurationRecorderName *string `min:"1" type:"string" required:"true"`
-
-	metadataStopConfigurationRecorderInput `json:"-" xml:"-"`
-}
-
-type metadataStopConfigurationRecorderInput struct {
-	SDKShapeTraits bool `type:"structure"`
 }
 
 // String returns the string representation
@@ -2897,11 +2675,7 @@ func (s StopConfigurationRecorderInput) GoString() string {
 }
 
 type StopConfigurationRecorderOutput struct {
-	metadataStopConfigurationRecorderOutput `json:"-" xml:"-"`
-}
-
-type metadataStopConfigurationRecorderOutput struct {
-	SDKShapeTraits bool `type:"structure"`
+	_ struct{} `type:"structure"`
 }
 
 // String returns the string representation
@@ -3006,6 +2780,8 @@ const (
 	// @enum ResourceType
 	ResourceTypeAwsEc2Eip = "AWS::EC2::EIP"
 	// @enum ResourceType
+	ResourceTypeAwsEc2Host = "AWS::EC2::Host"
+	// @enum ResourceType
 	ResourceTypeAwsEc2Instance = "AWS::EC2::Instance"
 	// @enum ResourceType
 	ResourceTypeAwsEc2InternetGateway = "AWS::EC2::InternetGateway"
@@ -3029,4 +2805,12 @@ const (
 	ResourceTypeAwsEc2Vpnconnection = "AWS::EC2::VPNConnection"
 	// @enum ResourceType
 	ResourceTypeAwsEc2Vpngateway = "AWS::EC2::VPNGateway"
+	// @enum ResourceType
+	ResourceTypeAwsIamGroup = "AWS::IAM::Group"
+	// @enum ResourceType
+	ResourceTypeAwsIamPolicy = "AWS::IAM::Policy"
+	// @enum ResourceType
+	ResourceTypeAwsIamRole = "AWS::IAM::Role"
+	// @enum ResourceType
+	ResourceTypeAwsIamUser = "AWS::IAM::User"
 )

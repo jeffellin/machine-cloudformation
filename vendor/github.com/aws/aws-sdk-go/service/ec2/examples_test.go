@@ -55,6 +55,29 @@ func ExampleEC2_AllocateAddress() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_AllocateHosts() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.AllocateHostsInput{
+		AvailabilityZone: aws.String("String"), // Required
+		InstanceType:     aws.String("String"), // Required
+		Quantity:         aws.Int64(1),         // Required
+		AutoPlacement:    aws.String("AutoPlacement"),
+		ClientToken:      aws.String("String"),
+	}
+	resp, err := svc.AllocateHosts(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_AssignPrivateIpAddresses() {
 	svc := ec2.New(session.New())
 
@@ -574,6 +597,8 @@ func ExampleEC2_CopyImage() {
 		ClientToken:   aws.String("String"),
 		Description:   aws.String("String"),
 		DryRun:        aws.Bool(true),
+		Encrypted:     aws.Bool(true),
+		KmsKeyId:      aws.String("String"),
 	}
 	resp, err := svc.CopyImage(params)
 
@@ -797,6 +822,27 @@ func ExampleEC2_CreateKeyPair() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_CreateNatGateway() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.CreateNatGatewayInput{
+		AllocationId: aws.String("String"), // Required
+		SubnetId:     aws.String("String"), // Required
+		ClientToken:  aws.String("String"),
+	}
+	resp, err := svc.CreateNatGateway(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_CreateNetworkAcl() {
 	svc := ec2.New(session.New())
 
@@ -943,6 +989,7 @@ func ExampleEC2_CreateRoute() {
 		DryRun:                 aws.Bool(true),
 		GatewayId:              aws.String("String"),
 		InstanceId:             aws.String("String"),
+		NatGatewayId:           aws.String("String"),
 		NetworkInterfaceId:     aws.String("String"),
 		VpcPeeringConnectionId: aws.String("String"),
 	}
@@ -1347,6 +1394,25 @@ func ExampleEC2_DeleteKeyPair() {
 		DryRun:  aws.Bool(true),
 	}
 	resp, err := svc.DeleteKeyPair(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_DeleteNatGateway() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DeleteNatGatewayInput{
+		NatGatewayId: aws.String("String"), // Required
+	}
+	resp, err := svc.DeleteNatGateway(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -2071,6 +2137,59 @@ func ExampleEC2_DescribeFlowLogs() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_DescribeHosts() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DescribeHostsInput{
+		Filter: []*ec2.Filter{
+			{ // Required
+				Name: aws.String("String"),
+				Values: []*string{
+					aws.String("String"), // Required
+					// More values...
+				},
+			},
+			// More values...
+		},
+		HostIds: []*string{
+			aws.String("String"), // Required
+			// More values...
+		},
+		MaxResults: aws.Int64(1),
+		NextToken:  aws.String("String"),
+	}
+	resp, err := svc.DescribeHosts(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_DescribeIdFormat() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DescribeIdFormatInput{
+		Resource: aws.String("String"),
+	}
+	resp, err := svc.DescribeIdFormat(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_DescribeImageAttribute() {
 	svc := ec2.New(session.New())
 
@@ -2384,6 +2503,40 @@ func ExampleEC2_DescribeMovingAddresses() {
 		},
 	}
 	resp, err := svc.DescribeMovingAddresses(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_DescribeNatGateways() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.DescribeNatGatewaysInput{
+		Filter: []*ec2.Filter{
+			{ // Required
+				Name: aws.String("String"),
+				Values: []*string{
+					aws.String("String"), // Required
+					// More values...
+				},
+			},
+			// More values...
+		},
+		MaxResults: aws.Int64(1),
+		NatGatewayIds: []*string{
+			aws.String("String"), // Required
+			// More values...
+		},
+		NextToken: aws.String("String"),
+	}
+	resp, err := svc.DescribeNatGateways(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -3183,8 +3336,8 @@ func ExampleEC2_DescribeVpcAttribute() {
 	svc := ec2.New(session.New())
 
 	params := &ec2.DescribeVpcAttributeInput{
-		VpcId:     aws.String("String"), // Required
-		Attribute: aws.String("VpcAttributeName"),
+		Attribute: aws.String("VpcAttributeName"), // Required
+		VpcId:     aws.String("String"),           // Required
 		DryRun:    aws.Bool(true),
 	}
 	resp, err := svc.DescribeVpcAttribute(params)
@@ -3791,8 +3944,10 @@ func ExampleEC2_ImportInstance() {
 			InstanceType:                      aws.String("InstanceType"),
 			Monitoring:                        aws.Bool(true),
 			Placement: &ec2.Placement{
+				Affinity:         aws.String("String"),
 				AvailabilityZone: aws.String("String"),
 				GroupName:        aws.String("String"),
+				HostId:           aws.String("String"),
 				Tenancy:          aws.String("Tenancy"),
 			},
 			PrivateIpAddress: aws.String("String"),
@@ -3890,6 +4045,49 @@ func ExampleEC2_ImportVolume() {
 		DryRun:      aws.Bool(true),
 	}
 	resp, err := svc.ImportVolume(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_ModifyHosts() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.ModifyHostsInput{
+		AutoPlacement: aws.String("AutoPlacement"), // Required
+		HostIds: []*string{ // Required
+			aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.ModifyHosts(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_ModifyIdFormat() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.ModifyIdFormatInput{
+		Resource:   aws.String("String"), // Required
+		UseLongIds: aws.Bool(true),       // Required
+	}
+	resp, err := svc.ModifyIdFormat(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -4009,6 +4207,28 @@ func ExampleEC2_ModifyInstanceAttribute() {
 		Value: aws.String("String"),
 	}
 	resp, err := svc.ModifyInstanceAttribute(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
+func ExampleEC2_ModifyInstancePlacement() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.ModifyInstancePlacementInput{
+		InstanceId: aws.String("String"), // Required
+		Affinity:   aws.String("Affinity"),
+		HostId:     aws.String("String"),
+		Tenancy:    aws.String("HostTenancy"),
+	}
+	resp, err := svc.ModifyInstancePlacement(params)
 
 	if err != nil {
 		// Print the error, cast err to awserr.Error to get the Code and
@@ -4430,6 +4650,28 @@ func ExampleEC2_ReleaseAddress() {
 	fmt.Println(resp)
 }
 
+func ExampleEC2_ReleaseHosts() {
+	svc := ec2.New(session.New())
+
+	params := &ec2.ReleaseHostsInput{
+		HostIds: []*string{ // Required
+			aws.String("String"), // Required
+			// More values...
+		},
+	}
+	resp, err := svc.ReleaseHosts(params)
+
+	if err != nil {
+		// Print the error, cast err to awserr.Error to get the Code and
+		// Message from an error.
+		fmt.Println(err.Error())
+		return
+	}
+
+	// Pretty-print the response data.
+	fmt.Println(resp)
+}
+
 func ExampleEC2_ReplaceNetworkAclAssociation() {
 	svc := ec2.New(session.New())
 
@@ -4493,6 +4735,7 @@ func ExampleEC2_ReplaceRoute() {
 		DryRun:                 aws.Bool(true),
 		GatewayId:              aws.String("String"),
 		InstanceId:             aws.String("String"),
+		NatGatewayId:           aws.String("String"),
 		NetworkInterfaceId:     aws.String("String"),
 		VpcPeeringConnectionId: aws.String("String"),
 	}
@@ -5040,8 +5283,10 @@ func ExampleEC2_RunInstances() {
 			// More values...
 		},
 		Placement: &ec2.Placement{
+			Affinity:         aws.String("String"),
 			AvailabilityZone: aws.String("String"),
 			GroupName:        aws.String("String"),
+			HostId:           aws.String("String"),
 			Tenancy:          aws.String("Tenancy"),
 		},
 		PrivateIpAddress: aws.String("String"),
